@@ -1,6 +1,10 @@
 # OOTP Fantasy Calculator
 
-A web application for converting Out of the Park Baseball (OOTP) statistics into fantasy baseball points using various scoring systems. Perfect for running fantasy leagues with fictional players or creating DFS contests using OOTP sim results.
+For years, I've wanted a modular Fantasy calculator that lets you play OOTP like a fantasy league in all the various different formats, but didn't feel like building it myself because it's a huge lift for something so trivial. Then I realized all you really need is a calculator for making sense of the points, then all you need is a separate spreadsheet to play how you want. Since OOTP is mostly a solo game anyway, I figure that anyone dorky would just figure out how to make this work for themselves. This is pretty bare bones, built in less than an hour and is mostly just for me, I guess I'll share it someday. Fork and update it to your heart's content if you find it. 
+
+Ideal state, someday there could be more features to something like this...but it's a limited use case tool and this already surpasses my hopes and dreams. 
+
+# OOTP Fantasy Calculator
 
 ## Features
 
@@ -13,55 +17,41 @@ A web application for converting Out of the Park Baseball (OOTP) statistics into
   - Complete FanDuel scoring system for both hitting and pitching
   - Custom bonus structure for special achievements
   
-- **Standard Season-Long**
-  - Traditional fantasy baseball scoring
-  - Configurable for both head-to-head and total points leagues
-  
 - **Rotisserie (5x5)**
-  - Classic 5x5 categories
-  - Supports both hitting and pitching categories
-  - Calculates rankings and points for each category
+  - Classic 5x5 categories (R, HR, RBI, SB, AVG for hitting; W, SV, ERA, WHIP, K for pitching)
+  - Implements full category rankings
+  - Calculates standardized 12-point scale scores
+  
+- **Statcast Era**
+  - Modern analytics-focused scoring
+  - Emphasizes advanced metrics like ISO, OPS, FIP
+  - Includes WAR and park-adjusted stats
+  
+- **Backwards Baseball**
+  - Reverse scoring system where negative outcomes earn points
+  - Rewards strikeouts (hitting) and earned runs (pitching)
+  - Perfect for finding the "best worst players"
 
 ### Stats Support
-- **Hitting Statistics**
+- **Basic Stats**
   - Singles, Doubles, Triples, Home Runs
   - Runs, RBIs
   - Walks, Hit By Pitch
   - Stolen Bases, Caught Stealing
-  - Batting Average, OPS
+  - Batting Average
   
-- **Pitching Statistics**
-  - Innings Pitched
-  - Strikeouts
-  - Wins, Saves, Holds
-  - Earned Runs
-  - Hits Allowed, Walks
-  - ERA, WHIP
-  - Complete Games, Shutouts, No-Hitters
+- **Advanced Stats**
+  - ISO (Isolated Power)
+  - OPS (On-base Plus Slugging)
+  - BABIP
+  - K/9, BB/9
+  - FIP (Fielding Independent Pitching)
+  - ERA+
+  - WAR
 
-## Setup
+## CSV Format Requirements
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start the development server:
-```bash
-npm run dev
-```
-
-## Usage
-
-1. Select your desired scoring system from the dropdown menu
-2. Upload your OOTP CSV export files:
-   - One for hitting statistics
-   - One for pitching statistics
-3. View calculated fantasy points or category rankings for each player
-
-### CSV Format Requirements
-
-#### Hitting Stats CSV
+### Hitting Stats CSV
 Required columns:
 - Name
 - POS (Position)
@@ -75,9 +65,11 @@ Required columns:
 - SB (Stolen Bases)
 - CS (Caught Stealing)
 - AVG (Batting Average)
-- OPS (Optional)
+- OPS
+- BABIP
+- WAR
 
-#### Pitching Stats CSV
+### Pitching Stats CSV
 Required columns:
 - Name
 - POS (Position)
@@ -91,6 +83,9 @@ Required columns:
 - HLD (Holds)
 - ERA
 - WHIP
+- FIP
+- ERA+
+- WAR
 
 ## Scoring Details
 
@@ -144,32 +139,51 @@ Required columns:
 - Complete Game Shutout: 3 pts bonus
 - No-Hitter: 6 pts bonus
 
-## Planned Features
 
-1. Custom Scoring Formula Builder
-   - Create and save custom scoring systems
-   - Support for complex scoring rules and bonuses
+### Statcast Era
 
-2. Advanced Stats Integration
-   - Support for advanced metrics like wOBA, FIP
-   - Custom stat calculations
+#### Hitting
+- OBP: 15 pts
+- SLG: 10 pts
+- ISO: 8 pts
+- BABIP: 5 pts
+- OPS: 12 pts
+- WAR: 10 pts
+- HR: 4 pts
+- BB: 3 pts
+- K: -2 pts
 
-3. League Management
-   - Save league settings
-   - Track multiple leagues
-   - Season-long standings
+#### Pitching
+- K/9: 5 pts
+- BB/9: -3 pts
+- HR/9: -5 pts
+- WHIP: -8 pts
+- FIP: -6 pts
+- ERA+: 4 pts
+- WAR: 8 pts
 
-4. Roster Management
-   - Lineup optimization
-   - Salary cap compliance
-   - Position eligibility tracking
+### Backwards Baseball
 
-## Contributing
+#### Hitting
+- AB: 1 pt
+- H: -2 pts
+- HR: -10 pts
+- RBI: -2 pts
+- BB: -3 pts
+- K: 3 pts
+- GIDP: 5 pts
+- CS: 4 pts
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+#### Pitching
+- IP: 2 pts
+- ER: 3 pts
+- H: 1 pt
+- BB: 2 pts
+- K: -2 pts
+- HR: 5 pts
+- L: 10 pts
 
 ## License
-
 This project is licensed under the Mozilla Public License 2.0 - see the LICENSE file for details. This means:
 - You can use this code in commercial projects
 - You can modify the code as you need
