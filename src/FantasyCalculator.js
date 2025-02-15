@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
 import Papa from 'papaparse';
 import _ from 'lodash';
 
@@ -7,203 +10,202 @@ const FantasyCalculator = () => {
   const [hittingStats, setHittingStats] = useState([]);
   const [pitchingStats, setPitchingStats] = useState([]);
   const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
+  const [customSystems, setCustomSystems] = useState([]);
+  const [newSystem, setNewSystem] = useState({
+    name: '',
+    hitting: {},
+    pitching: {}
+  });
+  const [showCustomDialog, setShowCustomDialog] = useState(false);
   
- const scoringSystems = {
-  draftKingsDFS: {
-    name: 'DraftKings DFS',
-    hitting: {
-      '1B': 3,
-      '2B': 5,
-      '3B': 8,
-      'HR': 10,
-      'R': 2,
-      'RBI': 2,
-      'BB': 2,
-      'SB': 5,
-      'CS': -2,
-      'HBP': 2 // Hit by pitch
+  // Base scoring systems
+  const baseSystems = {
+    draftKingsDFS: {
+      name: 'DraftKings DFS',
+      hitting: {
+        '1B': 3,
+        '2B': 5,
+        '3B': 8,
+        'HR': 10,
+        'R': 2,
+        'RBI': 2,
+        'BB': 2,
+        'SB': 5,
+        'CS': -2,
+        'HBP': 2
+      },
+      pitching: {
+        'IP': 2.25,
+        'K': 2,
+        'W': 4,
+        'ER': -2,
+        'H': -0.6,
+        'BB': -0.6,
+        'HBP': -0.6,
+        'CG': 2.5,
+        'CGSO': 2.5,
+        'NH': 5
+      }
     },
-    pitching: {
-      'IP': 2.25, // per out (6.75 per full inning)
-      'K': 2,
-      'W': 4,
-      'ER': -2,
-      'H': -0.6,
-      'BB': -0.6,
-      'HBP': -0.6,
-      'CG': 2.5,
-      'CGSO': 2.5, // Complete game shutout bonus
-      'NH': 5 // No-hitter bonus
-    }
-  },
-  fanduelDFS: {
-    name: 'FanDuel DFS',
-    hitting: {
-      '1B': 3,
-      '2B': 6,
-      '3B': 9,
-      'HR': 12,
-      'R': 3.2,
-      'RBI': 3.5,
-      'BB': 3,
-      'SB': 6,
-      'CS': -3,
-      'HBP': 3
-    },
-    pitching: {
-      'IP': 3, // per out (9 per full inning)
-      'K': 3,
-      'W': 6,
-      'ER': -3,
-      'H': -0.6,
-      'BB': -0.6,
-      'HBP': -0.6,
-      'CG': 3,
-      'CGSO': 3,
-      'NH': 6
-    }
-  },
-  roto5x5: {
-    name: 'Rotisserie 5x5',
-    hitting: ['R', 'HR', 'RBI', 'SB', 'AVG'],
-    pitching: ['W', 'SV', 'ERA', 'WHIP', 'K']
-  }
-};
-
-  const processHittingFile = async (file) => {
-    const text = await file.text();
-    Papa.parse(text, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        // Calculate singles and add DFS-specific fields
-        const processedStats = results.data.map(player => ({
-          ...player,
-          '1B': player.H - (player['2B'] + player['3B'] + player.HR),
-          'CGSO': 0, // These would need to be in your CSV or calculated
-          'NH': 0,   // These would need to be in your CSV or calculated
-          'CG': 0    // These would need to be in your CSV or calculated
-        }));
-        setHittingStats(processedStats);
-      }
-    });
+    // ... (rest of your existing scoring systems)
   };
 
-  const processPitchingFile = async (file) => {
-    const text = await file.text();
-    Papa.parse(text, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        // Add DFS-specific fields
-        const processedStats = results.data.map(player => ({
-          ...player,
-          'CGSO': 0, // These would need to be in your CSV or calculated
-          'NH': 0,   // These would need to be in your CSV or calculated
-          'CG': 0    // These would need to be in your CSV or calculated
-        }));
-        setPitchingStats(processedStats);
-      }
-    });
+  const [scoringSystems, setScoringSystems] = useState(baseSystems);
+
+  // Available stats for custom scoring
+  const availableStats = {
+    hitting: [
+      { id: '1B', name: 'Singles' },
+      { id: '2B', name: 'Doubles' },
+      { id: '3B', name: 'Triples' },
+      { id: 'HR', name: 'Home Runs' },
+      { id: 'R', name: 'Runs' },
+      { id: 'RBI', name: 'RBI' },
+      { id: 'BB', name: 'Walks' },
+      { id: 'SB', name: 'Stolen Bases' },
+      { id: 'CS', name: 'Caught Stealing' },
+      { id: 'HBP', name: 'Hit By Pitch' },
+      { id: 'AVG', name: 'Batting Average' },
+      { id: 'OBP', name: 'On Base Percentage' },
+      { id: 'SLG', name: 'Slugging' },
+      { id: 'OPS', name: 'OPS' }
+    ],
+    pitching: [
+      { id: 'IP', name: 'Innings Pitched' },
+      { id: 'K', name: 'Strikeouts' },
+      { id: 'W', name: 'Wins' },
+      { id: 'SV', name: 'Saves' },
+      { id: 'HLD', name: 'Holds' },
+      { id: 'ER', name: 'Earned Runs' },
+      { id: 'H', name: 'Hits Allowed' },
+      { id: 'BB', name: 'Walks' },
+      { id: 'HBP', name: 'Hit By Pitch' },
+      { id: 'CG', name: 'Complete Games' },
+      { id: 'CGSO', name: 'Complete Game Shutouts' },
+      { id: 'NH', name: 'No-Hitters' },
+      { id: 'ERA', name: 'ERA' },
+      { id: 'WHIP', name: 'WHIP' }
+    ]
   };
 
-  const calculateDFSPoints = (player, type, system) => {
-    const scoring = scoringSystems[system][type];
-    
-    if (type === 'hitting') {
-      return (
-        (player['1B'] * scoring['1B']) +
-        (player['2B'] * scoring['2B']) +
-        (player['3B'] * scoring['3B']) +
-        (player.HR * scoring.HR) +
-        (player.R * scoring.R) +
-        (player.RBI * scoring.RBI) +
-        ((player.BB || 0) * scoring.BB) +
-        ((player.SB || 0) * scoring.SB) +
-        ((player.CS || 0) * scoring.CS) +
-        ((player.HP || 0) * scoring.HBP)
-      );
-    } else {
-      // Convert IP to outs for DFS scoring
-      const outs = player.IP * 3;
-      
-      return (
-        (outs * scoring.IP) +
-        (player.K * scoring.K) +
-        (player.W * scoring.W) +
-        (player.ER * scoring.ER) +
-        (player.HA * scoring.H) +
-        (player.BB * scoring.BB) +
-        ((player.HP || 0) * scoring.HBP) +
-        ((player.CG || 0) * scoring.CG) +
-        ((player.CGSO || 0) * scoring.CGSO) +
-        ((player.NH || 0) * scoring.NH)
-      );
-    }
-  };
-
-  const calculateRotoRankings = (stats, type, categories) => {
-    if (!stats.length) return [];
-    
-    const rankings = {};
-    
-    categories.forEach(category => {
-      let sortedPlayers;
-      
-      if (category === 'AVG' || category === 'ERA' || category === 'WHIP') {
-        const qualifiedStats = stats.filter(player => {
-          if (type === 'hitting') return player.PA >= 20;
-          return player.IP >= 10;
-        });
-        
-        sortedPlayers = _.orderBy(qualifiedStats, [category], 
-          [(category === 'ERA' || category === 'WHIP') ? 'asc' : 'desc']);
-      } else {
-        sortedPlayers = _.orderBy(stats, [category], ['desc']);
-      }
-      
-      sortedPlayers.forEach((player, index) => {
-        if (!rankings[player.Name]) rankings[player.Name] = 0;
-        rankings[player.Name] += sortedPlayers.length - index;
+  // Load custom systems from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('customScoringSystems');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setCustomSystems(parsed);
+      setScoringSystems({
+        ...baseSystems,
+        ...parsed.reduce((acc, sys) => ({ ...acc, [sys.id]: sys }), {})
       });
+    }
+  }, []);
+
+  const saveCustomSystem = () => {
+    const id = `custom_${Date.now()}`;
+    const systemToSave = {
+      id,
+      ...newSystem,
+      type: 'custom'
+    };
+    
+    const updatedCustomSystems = [...customSystems, systemToSave];
+    setCustomSystems(updatedCustomSystems);
+    setScoringSystems({
+      ...scoringSystems,
+      [id]: systemToSave
     });
     
-    return Object.entries(rankings)
-      .map(([name, points]) => ({
-        Name: name,
-        RotoPoints: points,
-        RotoScore: (points / (categories.length * stats.length) * 12).toFixed(2)
-      }))
-      .sort((a, b) => b.RotoPoints - a.RotoPoints);
+    localStorage.setItem('customScoringSystems', JSON.stringify(updatedCustomSystems));
+    setShowCustomDialog(false);
+    setNewSystem({ name: '', hitting: {}, pitching: {} });
   };
 
-  const getPlayerScores = (type) => {
-    const stats = type === 'hitting' ? hittingStats : pitchingStats;
-    if (!stats.length) return [];
+  const CustomScoringDialog = () => (
+    <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Create Custom Scoring System</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Input
+            placeholder="System Name"
+            value={newSystem.name}
+            onChange={(e) => setNewSystem({ ...newSystem, name: e.target.value })}
+          />
+          
+          <div className="grid grid-cols-2 gap-4">
+            {/* Hitting Stats */}
+            <div>
+              <h3 className="font-medium mb-2">Hitting Points</h3>
+              {availableStats.hitting.map(stat => (
+                <div key={stat.id} className="flex items-center space-x-2 mb-2">
+                  <label className="w-24">{stat.name}</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="0"
+                    value={newSystem.hitting[stat.id] || ''}
+                    onChange={(e) => setNewSystem({
+                      ...newSystem,
+                      hitting: {
+                        ...newSystem.hitting,
+                        [stat.id]: parseFloat(e.target.value) || 0
+                      }
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
 
-    if (scoringSystem.includes('DFS')) {
-      return stats.map(player => ({
-        ...player,
-        FantasyPoints: calculateDFSPoints(player, type, scoringSystem)
-      }))
-      .sort((a, b) => b.FantasyPoints - a.FantasyPoints);
-    } else if (scoringSystem === 'roto5x5') {
-      return calculateRotoRankings(stats, type, scoringSystems.roto5x5[type]);
-    } else {
-      return stats.map(player => ({
-        ...player,
-        FantasyPoints: calculateDFSPoints(player, type, 'standard')
-      }))
-      .sort((a, b) => b.FantasyPoints - a.FantasyPoints);
-    }
-  };
+            {/* Pitching Stats */}
+            <div>
+              <h3 className="font-medium mb-2">Pitching Points</h3>
+              {availableStats.pitching.map(stat => (
+                <div key={stat.id} className="flex items-center space-x-2 mb-2">
+                  <label className="w-24">{stat.name}</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="0"
+                    value={newSystem.pitching[stat.id] || ''}
+                    onChange={(e) => setNewSystem({
+                      ...newSystem,
+                      pitching: {
+                        ...newSystem.pitching,
+                        [stat.id]: parseFloat(e.target.value) || 0
+                      }
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowCustomDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveCustomSystem} disabled={!newSystem.name}>
+              Save System
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Your existing code for processing files and calculating scores...
+  
   return (
     <div className="space-y-6 p-4">
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">OOTP Fantasy Calculator</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">OOTP Fantasy Calculator</h1>
+          <Button onClick={() => setShowCustomDialog(true)}>
+            Create Custom System
+          </Button>
+        </div>
         
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Scoring System:</label>
@@ -212,101 +214,24 @@ const FantasyCalculator = () => {
             onChange={(e) => setScoringSystem(e.target.value)}
             className="p-2 border rounded"
           >
-            {Object.entries(scoringSystems).map(([key, system]) => (
-              <option key={key} value={key}>{system.name}</option>
-            ))}
+            <optgroup label="Standard Systems">
+              {Object.entries(baseSystems).map(([key, system]) => (
+                <option key={key} value={key}>{system.name}</option>
+              ))}
+            </optgroup>
+            {customSystems.length > 0 && (
+              <optgroup label="Custom Systems">
+                {customSystems.map(system => (
+                  <option key={system.id} value={system.id}>{system.name}</option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Hitting Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Hitting Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => processHittingFile(e.target.files[0])}
-                className="mb-4"
-              />
-              
-              {hittingStats.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2 text-left">Name</th>
-                        <th className="p-2 text-left">Pos</th>
-                        <th className="p-2 text-right">
-                          {scoringSystem === 'roto5x5' ? 'Roto Score' : 'Fantasy Points'}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {getPlayerScores('hitting').map((player, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          <td className="p-2">{player.Name}</td>
-                          <td className="p-2">{player.POS}</td>
-                          <td className="p-2 text-right">
-                            {scoringSystem === 'roto5x5' ? 
-                              player.RotoScore : 
-                              player.FantasyPoints.toFixed(1)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Pitching Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pitching Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => processPitchingFile(e.target.files[0])}
-                className="mb-4"
-              />
-              
-              {pitchingStats.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2 text-left">Name</th>
-                        <th className="p-2 text-left">Pos</th>
-                        <th className="p-2 text-right">
-                          {scoringSystem === 'roto5x5' ? 'Roto Score' : 'Fantasy Points'}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {getPlayerScores('pitching').map((player, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          <td className="p-2">{player.Name}</td>
-                          <td className="p-2">{player.POS}</td>
-                          <td className="p-2 text-right">
-                            {scoringSystem === 'roto5x5' ? 
-                              player.RotoScore : 
-                              player.FantasyPoints.toFixed(1)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Rest of your existing JSX */}
+        
+        <CustomScoringDialog />
       </div>
     </div>
   );
