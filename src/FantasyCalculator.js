@@ -6,11 +6,6 @@ import { Input } from './components/ui/input';
 import Papa from 'papaparse';
 import _ from 'lodash';
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import Papa from 'papaparse';
-import _ from 'lodash';
-
 const FantasyCalculator = () => {
   const [hittingStats, setHittingStats] = useState([]);
   const [pitchingStats, setPitchingStats] = useState([]);
