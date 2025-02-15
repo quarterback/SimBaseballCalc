@@ -1,12 +1,11 @@
 import React from 'react';
-import FantasyCalculator from './FantasyCalculator';
 
 function App() {
-    return (
-        <div className="App">
-            <FantasyCalculator />
-        </div>
-    );
+  return (
+    <div className="App">
+      <h1>Fantasy Baseball Calculator</h1>
+    </div>
+  );
 }
 
 export default App;
