@@ -8,91 +8,67 @@ const FantasyCalculator = () => {
   const [pitchingStats, setPitchingStats] = useState([]);
   const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
   
-  const scoringSystems = {
-    draftKingsDFS: {
-      name: 'DraftKings DFS',
-      hitting: {
-        '1B': 3,
-        '2B': 5,
-        '3B': 8,
-        'HR': 10,
-        'R': 2,
-        'RBI': 2,
-        'BB': 2,
-        'SB': 5,
-        'CS': -2,
-        'HBP': 2  // Hit by pitch
-      },
-      pitching: {
-        'IP': 2.25,  // per out (6.75 per full inning)
-        'K': 2,
-        'W': 4,
-        'ER': -2,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 2.5,
-        'CGSO': 2.5, // Complete game shutout bonus
-        'NH': 5,    // No-hitter bonus
-      }
+ const scoringSystems = {
+  draftKingsDFS: {
+    name: 'DraftKings DFS',
+    hitting: {
+      '1B': 3,
+      '2B': 5,
+      '3B': 8,
+      'HR': 10,
+      'R': 2,
+      'RBI': 2,
+      'BB': 2,
+      'SB': 5,
+      'CS': -2,
+      'HBP': 2 // Hit by pitch
     },
-    fanduelDFS: {
-      name: 'FanDuel DFS',
-      hitting: {
-        '1B': 3,
-        '2B': 6,
-        '3B': 9,
-        'HR': 12,
-        'R': 3.2,
-        'RBI': 3.5,
-        'BB': 3,
-        'SB': 6,
-        'CS': -3,
-        'HBP': 3
-      },
-      pitching: {
-        'IP': 3,    // per out (9 per full inning)
-        'K': 3,
-        'W': 6,
-        'ER': -3,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 3,
-        'CGSO': 3,
-        'NH': 6
-      }
-    },
-    standard: {
-      name: 'Standard Season-Long',
-      hitting: {
-        '1B': 1,
-        '2B': 2,
-        '3B': 3,
-        'HR': 4,
-        'R': 1,
-        'RBI': 1,
-        'BB': 1,
-        'SB': 2,
-        'CS': -1
-      },
-      pitching: {
-        'IP': 3,
-        'K': 1,
-        'W': 4,
-        'SV': 5,
-        'HLD': 2,
-        'ER': -2,
-        'H': -0.5,
-        'BB': -1
-      }
-    },
-    roto5x5: {
-      name: 'Rotisserie 5x5',
-      hitting: ['R', 'HR', 'RBI', 'SB', 'AVG'],
-      pitching: ['W', 'SV', 'ERA', 'WHIP', 'K']
+    pitching: {
+      'IP': 2.25, // per out (6.75 per full inning)
+      'K': 2,
+      'W': 4,
+      'ER': -2,
+      'H': -0.6,
+      'BB': -0.6,
+      'HBP': -0.6,
+      'CG': 2.5,
+      'CGSO': 2.5, // Complete game shutout bonus
+      'NH': 5 // No-hitter bonus
     }
-  };
+  },
+  fanduelDFS: {
+    name: 'FanDuel DFS',
+    hitting: {
+      '1B': 3,
+      '2B': 6,
+      '3B': 9,
+      'HR': 12,
+      'R': 3.2,
+      'RBI': 3.5,
+      'BB': 3,
+      'SB': 6,
+      'CS': -3,
+      'HBP': 3
+    },
+    pitching: {
+      'IP': 3, // per out (9 per full inning)
+      'K': 3,
+      'W': 6,
+      'ER': -3,
+      'H': -0.6,
+      'BB': -0.6,
+      'HBP': -0.6,
+      'CG': 3,
+      'CGSO': 3,
+      'NH': 6
+    }
+  },
+  roto5x5: {
+    name: 'Rotisserie 5x5',
+    hitting: ['R', 'HR', 'RBI', 'SB', 'AVG'],
+    pitching: ['W', 'SV', 'ERA', 'WHIP', 'K']
+  }
+};
 
   const processHittingFile = async (file) => {
     const text = await file.text();
