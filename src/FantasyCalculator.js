@@ -252,49 +252,55 @@ const FantasyCalculator = () => {
 
   return (
     <div className="space-y-6 p-4">
-      <h1 className="text-2xl font-bold">OOTP Fantasy Calculator</h1>
+      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">OOTP Fantasy Calculator</h1>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Scoring System:</label>
-        <select
-          value={scoringSystem}
-          onChange={(e) => setScoringSystem(e.target.value)}
-          className="p-2 border rounded"
-        >
-          {Object.entries(scoringSystems).map(([key, system]) => (
-            <option key={key} value={key}>{system.name}</option>
-          ))}
-        </select>
-      </div>
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-2">Scoring System:</label>
+  <select
+    value={scoringSystem}
+    onChange={(e) => setScoringSystem(e.target.value)}
+    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  >
+    {Object.entries(scoringSystems).map(([key, system]) => (
+      <option key={key} value={key}>{system.name}</option>
+    ))}
+  </select>
+</div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Hitting Stats</CardTitle>
           </CardHeader>
           <CardContent>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => processFile(e.target.files[0], 'hitting')}
-              className="mb-4"
-            />
-            {loading && <p>Processing file...</p>}
+            <label className="block">
+              <span className="block text-sm font-medium text-gray-700 mb-2">Upload Hitting Stats:</span>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => processFile(e.target.files[0], 'hitting')}
+                className="w-full cursor-pointer p-2 rounded-lg bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100"
+              />
+            </label>
+
+            {loading && <p className="text-sm text-gray-500 mt-2">Processing file...</p>}
+
             {hittingStats.length > 0 && (
-              <table className="min-w-full">
-                <thead>
+              <table className="w-full mt-4 border border-gray-200 rounded-lg">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Points</th>
+                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Position</th>
+                    <th className="p-2 text-right">Points</th>
                   </tr>
                 </thead>
                 <tbody>
                   {getPlayerScores('hitting').map((player, idx) => (
-                    <tr key={idx}>
-                      <td>{player.Name}</td>
-                      <td>{player.POS}</td>
-                      <td>{player.FantasyPoints.toFixed(1)}</td>
+                    <tr key={idx} className={`p-2 ${idx % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+                      <td className="p-2">{player.Name}</td>
+                      <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.FantasyPoints.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -308,28 +314,33 @@ const FantasyCalculator = () => {
             <CardTitle>Pitching Stats</CardTitle>
           </CardHeader>
           <CardContent>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => processFile(e.target.files[0], 'pitching')}
-              className="mb-4"
-            />
-            {loading && <p>Processing file...</p>}
+            <label className="block">
+              <span className="block text-sm font-medium text-gray-700 mb-2">Upload Pitching Stats:</span>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => processFile(e.target.files[0], 'pitching')}
+                className="w-full cursor-pointer p-2 rounded-lg bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100"
+              />
+            </label>
+
+            {loading && <p className="text-sm text-gray-500 mt-2">Processing file...</p>}
+
             {pitchingStats.length > 0 && (
-              <table className="min-w-full">
-                <thead>
+              <table className="w-full mt-4 border border-gray-200 rounded-lg">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Points</th>
+                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Position</th>
+                    <th className="p-2 text-right">Points</th>
                   </tr>
                 </thead>
                 <tbody>
                   {getPlayerScores('pitching').map((player, idx) => (
-                    <tr key={idx}>
-                      <td>{player.Name}</td>
-                      <td>{player.POS}</td>
-                      <td>{player.FantasyPoints.toFixed(1)}</td>
+                    <tr key={idx} className={`p-2 ${idx % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+                      <td className="p-2">{player.Name}</td>
+                      <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.FantasyPoints.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
