@@ -1,69 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
+import _ from 'lodash';
 
 const SoloDFS = () => {
   const [roster, setRoster] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [personalBest, setPersonalBest] = useState(null);
+  const [personalBests, setPersonalBests] = useState({});
   const [currentScore, setCurrentScore] = useState(0);
   const [loadingStats, setLoadingStats] = useState(false);
   const [error, setError] = useState('');
-  
-  useEffect(() => {
-    const savedBest = localStorage.getItem('soloDFS_personalBest');
-    if (savedBest) {
-      setPersonalBest(JSON.parse(savedBest));
-    }
-  }, []);
+  const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
+  const [statType, setStatType] = useState('hitting');
 
-  const rosterLimits = {
-    'C': { min: 1, max: 1 },
-    '1B': { min: 1, max: 1 },
-    '2B': { min: 1, max: 1 },
-    '3B': { min: 1, max: 1 },
-    'SS': { min: 1, max: 1 },
-    'OF': { min: 3, max: 3 },
-    'SP': { min: 2, max: 2 },
-    'RP': { min: 1, max: 1 }
-  };
-
-  const calculatePoints = (player) => {
-    if (!player) return 0;
-    
-    const scoringSystem = {
+  const scoringSystems = {
+    draftKingsDFS: {
+      name: 'DraftKings DFS',
       hitting: {
-        '1B': 3,
-        '2B': 5,
-        '3B': 8,
-        'HR': 10,
-        'R': 2,
-        'RBI': 2,
-        'BB': 2,
-        'SB': 5,
-        'HBP': 2
+        '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
+        'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5,
+        'CS': -2, 'HBP': 2
       },
       pitching: {
-        'IP': 2.25,
-        'K': 2,
-        'W': 4,
-        'ER': -2,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 2.5,
-        'CGSO': 2.5
+        'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2,
+        'H': -0.6, 'BB': -0.6, 'HBP': -0.6,
+        'CG': 2.5, 'CGSO': 2.5, 'NH': 5
       }
-    };
-
-    const isPitcher = player.POS?.includes('P');
-    const scoring = isPitcher ? scoringSystem.pitching : scoringSystem.hitting;
-    
-    return Object.entries(scoring).reduce((total, [stat, points]) => {
-      const value = player[stat] || 0;
-      return total + (value * points);
-    }, 0);
+    },
+    fanduelDFS: {
+      name: 'FanDuel DFS',
+      hitting: {
+        '1B': 3, '2B': 6, '3B': 9, 'HR': 12,
+        'R': 3.2, 'RBI': 3.5, 'BB': 3, 'SB': 6,
+        'CS': -3, 'HBP': 3
+      },
+      pitching: {
+        'IP': 3, 'K': 3, 'W': 6, 'ER': -3,
+        'H': -0.6, 'BB': -0.6, 'HBP': -0.6,
+        'CG': 3, 'CGSO': 3, 'NH': 6
+      }
+    },
+    statcastEra: {
+      name: 'Statcast Era',
+      hitting: {
+        'HR': 4, 'BB': 3, 'K': -2, 'OBP': 15,
+        'SLG': 10, 'ISO': 8, 'BABIP': 5, 'OPS': 12,
+        'WAR': 10
+      },
+      pitching: {
+        'K/9': 5, 'BB/9': -3, 'HR/9': -5,
+        'WHIP': -8, 'FIP': -6, 'ERA+': 4,
+        'WAR': 8
+      }
+    },
+    backwardsBaseball: {
+      name: 'Backwards Baseball',
+      hitting: {
+        'AB': 1, 'H': -2, 'HR': -10, 'RBI': -2,
+        'BB': -3, 'K': 3, 'GIDP': 5, 'CS': 4
+      },
+      pitching: {
+        'IP': 2, 'ER': 3, 'H': 1, 'BB': 2,
+        'K': -2, 'HR': 5, 'L': 10
+      }
+    }
   };
+
+  useEffect(() => {
+    const savedBests = localStorage.getItem('soloDFS_personalBests');
+    if (savedBests) {
+      setPersonalBests(JSON.parse(savedBests));
+    }
+  }, []);
 
   const processFile = async (file) => {
     setLoadingStats(true);
@@ -81,11 +89,19 @@ const SoloDFS = () => {
             return;
           }
 
-          const processedPlayers = results.data.map(player => ({
-            ...player,
-            '1B': player.H - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
-            points: 0
-          }));
+          const processedPlayers = results.data.map(player => {
+            // Calculate derived stats
+            const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
+            return {
+              ...player,
+              '1B': singles,
+              'ISO': ((player['2B'] || 0) + 2 * (player['3B'] || 0) + 3 * (player.HR || 0)) / (player.AB || 1),
+              'K/9': (player.K || 0) * 9 / (player.IP || 1),
+              'BB/9': (player.BB || 0) * 9 / (player.IP || 1),
+              'HR/9': (player.HR || 0) * 9 / (player.IP || 1),
+              points: 0
+            };
+          });
 
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
@@ -101,22 +117,25 @@ const SoloDFS = () => {
     }
   };
 
+  const calculatePoints = (player, system = scoringSystem, type = statType) => {
+    if (!player) return 0;
+    const scoring = scoringSystems[system][type];
+    return Object.entries(scoring).reduce((total, [stat, points]) => {
+      const value = player[stat] || 0;
+      return total + (value * points);
+    }, 0);
+  };
+
   const addToRoster = (player) => {
-    if (roster.length >= 11) {
-      setError('Roster is full (11 players maximum)');
+    if (roster.length >= 9) {
+      setError('Roster is full (9 players maximum)');
       return;
     }
 
-    const position = player.POS;
-    const currentPositionCount = roster.filter(p => p.POS === position).length;
-    const limit = rosterLimits[position]?.max || 0;
-
-    if (currentPositionCount >= limit) {
-      setError(`Maximum ${position} players (${limit}) reached`);
-      return;
-    }
-
-    const updatedRoster = [...roster, { ...player, points: calculatePoints(player) }];
+    const updatedRoster = [...roster, {
+      ...player,
+      points: calculatePoints(player)
+    }];
     setRoster(updatedRoster);
     updateScore(updatedRoster);
   };
@@ -131,21 +150,47 @@ const SoloDFS = () => {
     const score = currentRoster.reduce((total, player) => total + player.points, 0);
     setCurrentScore(score);
 
-    if (!personalBest || score > personalBest.score) {
-      const newBest = {
-        score,
-        roster: currentRoster,
-        date: new Date().toISOString()
+    const bestKey = `${scoringSystem}_${statType}`;
+    if (!personalBests[bestKey] || score > personalBests[bestKey].score) {
+      const newBests = {
+        ...personalBests,
+        [bestKey]: {
+          score,
+          roster: currentRoster,
+          date: new Date().toISOString()
+        }
       };
-      setPersonalBest(newBest);
-      localStorage.setItem('soloDFS_personalBest', JSON.stringify(newBest));
+      setPersonalBests(newBests);
+      localStorage.setItem('soloDFS_personalBests', JSON.stringify(newBests));
     }
   };
 
-  const filteredPlayers = availablePlayers.filter(player => 
-    player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    player.POS?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleScoringChange = (newSystem) => {
+    setScoringSystem(newSystem);
+    const updatedRoster = roster.map(player => ({
+      ...player,
+      points: calculatePoints(player, newSystem, statType)
+    }));
+    setRoster(updatedRoster);
+    updateScore(updatedRoster);
+  };
+
+  const handleStatTypeChange = (newType) => {
+    setStatType(newType);
+    setRoster([]); // Clear roster when switching between hitting/pitching
+    setCurrentScore(0);
+  };
+
+  const filteredPlayers = availablePlayers.filter(player => {
+    const searchLower = searchQuery.toLowerCase();
+    const isPitcher = player.POS?.includes('P');
+    const matchesType = (statType === 'pitching') === isPitcher;
+    
+    return matchesType && (
+      player.Name?.toLowerCase().includes(searchLower) ||
+      player.POS?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -158,6 +203,37 @@ const SoloDFS = () => {
           {error}
         </div>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Scoring System:
+          </label>
+          <select
+            value={scoringSystem}
+            onChange={(e) => handleScoringChange(e.target.value)}
+            className="w-full p-2 border rounded-lg"
+          >
+            {Object.entries(scoringSystems).map(([key, system]) => (
+              <option key={key} value={key}>{system.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Stats Type:
+          </label>
+          <select
+            value={statType}
+            onChange={(e) => handleStatTypeChange(e.target.value)}
+            className="w-full p-2 border rounded-lg"
+          >
+            <option value="hitting">Hitting</option>
+            <option value="pitching">Pitching</option>
+          </select>
+        </div>
+      </div>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h3 className="text-lg font-semibold mb-2">Import Players</h3>
@@ -217,10 +293,10 @@ const SoloDFS = () => {
             <p className="text-lg font-semibold">
               Current Score: {currentScore.toFixed(1)}
             </p>
-            {personalBest && (
+            {personalBests[`${scoringSystem}_${statType}`] && (
               <p className="text-sm text-gray-600">
-                Personal Best: {personalBest.score.toFixed(1)} 
-                (Set on {new Date(personalBest.date).toLocaleDateString()})
+                Personal Best: {personalBests[`${scoringSystem}_${statType}`].score.toFixed(1)} 
+                (Set on {new Date(personalBests[`${scoringSystem}_${statType}`].date).toLocaleDateString()})
               </p>
             )}
           </div>
