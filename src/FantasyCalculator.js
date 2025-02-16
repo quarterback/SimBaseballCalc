@@ -10,7 +10,80 @@ const FantasyCalculator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ... scoringSystems object ...
+  const scoringSystems = {
+    draftKingsDFS: {
+      name: 'DraftKings DFS',
+      hitting: {
+        '1B': 3,
+        '2B': 5,
+        '3B': 8,
+        'HR': 10,
+        'R': 2,
+        'RBI': 2,
+        'BB': 2,
+        'SB': 5,
+        'CS': -2,
+        'HBP': 2
+      },
+      pitching: {
+        'IP': 2.25,
+        'K': 2,
+        'W': 4,
+        'ER': -2,
+        'H': -0.6,
+        'BB': -0.6,
+        'HBP': -0.6,
+        'CG': 2.5,
+        'CGSO': 2.5,
+        'NH': 5
+      }
+    },
+    fanduelDFS: {
+      name: 'FanDuel DFS',
+      hitting: {
+        '1B': 3,
+        '2B': 6,
+        '3B': 9,
+        'HR': 12,
+        'R': 3.2,
+        'RBI': 3.5,
+        'BB': 3,
+        'SB': 6,
+        'CS': -3,
+        'HBP': 3
+      },
+      pitching: {
+        'IP': 3,
+        'K': 3,
+        'W': 6,
+        'ER': -3,
+        'H': -0.6,
+        'BB': -0.6,
+        'HBP': -0.6,
+        'CG': 3,
+        'CGSO': 3,
+        'NH': 6
+      }
+    }
+  };
+
+  const calculatePoints = (player, type) => {
+    const scoring = scoringSystems[scoringSystem][type];
+    return Object.entries(scoring).reduce((total, [stat, points]) => {
+      if (player[stat]) return total + player[stat] * points;
+      return total;
+    }, 0);
+  };
+
+  const getPlayerScores = (type) => {
+    const stats = type === 'hitting' ? hittingStats : pitchingStats;
+    return stats
+      .map((player) => ({
+        ...player,
+        FantasyPoints: calculatePoints(player, type),
+      }))
+      .sort((a, b) => b.FantasyPoints - a.FantasyPoints);
+  };
 
   const processFile = async (file, type) => {
     setIsLoading(true);
@@ -50,8 +123,6 @@ const FantasyCalculator = () => {
       setIsLoading(false);
     }
   };
-
-  // ... other functions ...
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
@@ -104,7 +175,7 @@ const FantasyCalculator = () => {
           <input
             type="file"
             accept=".csv"
-            onChange={(e) => processFile(e.target.files[0], 'hitting')}
+            onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0], 'hitting')}
             disabled={isLoading}
             className="block w-full p-2 border rounded-lg mb-4 disabled:opacity-50"
           />
@@ -155,7 +226,7 @@ const FantasyCalculator = () => {
           <input
             type="file"
             accept=".csv"
-            onChange={(e) => processFile(e.target.files[0], 'pitching')}
+            onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0], 'pitching')}
             disabled={isLoading}
             className="block w-full p-2 border rounded-lg mb-4 disabled:opacity-50"
           />
