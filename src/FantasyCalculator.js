@@ -10,36 +10,7 @@ const FantasyCalculator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const scoringSystems = {
-    draftKingsDFS: {
-      name: 'DraftKings DFS',
-      hitting: {
-        '1B': 3,
-        '2B': 5,
-        '3B': 8,
-        'HR': 10,
-        'R': 2,
-        'RBI': 2,
-        'BB': 2,
-        'SB': 5,
-        'CS': -2,
-        'HBP': 2
-      },
-      pitching: {
-        'IP': 2.25,
-        'K': 2,
-        'W': 4,
-        'ER': -2,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 2.5,
-        'CGSO': 2.5,
-        'NH': 5
-      }
-    },
-    // ... other scoring systems
-  };
+  // ... scoringSystems object ...
 
   const processFile = async (file, type) => {
     setIsLoading(true);
@@ -80,23 +51,7 @@ const FantasyCalculator = () => {
     }
   };
 
-  const calculatePoints = (player, type) => {
-    const scoring = scoringSystems[scoringSystem][type];
-    return Object.entries(scoring).reduce((total, [stat, points]) => {
-      if (player[stat]) return total + player[stat] * points;
-      return total;
-    }, 0);
-  };
-
-  const getPlayerScores = (type) => {
-    const stats = type === 'hitting' ? hittingStats : pitchingStats;
-    return stats
-      .map((player) => ({
-        ...player,
-        FantasyPoints: calculatePoints(player, type),
-      }))
-      .sort((a, b) => b.FantasyPoints - a.FantasyPoints);
-  };
+  // ... other functions ...
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
@@ -110,6 +65,12 @@ const FantasyCalculator = () => {
         </div>
       )}
 
+      {isLoading && (
+        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative">
+          Processing file...
+        </div>
+      )}
+
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Scoring System:
@@ -117,7 +78,8 @@ const FantasyCalculator = () => {
         <select
           value={scoringSystem}
           onChange={(e) => setScoringSystem(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isLoading}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           {Object.entries(scoringSystems).map(([key, system]) => (
             <option key={key} value={key}>
@@ -136,40 +98,44 @@ const FantasyCalculator = () => {
             placeholder="Search hitting stats..."
             value={hittingSearchQuery}
             onChange={(e) => setHittingSearchQuery(e.target.value)}
-            className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            disabled={isLoading}
+            className="w-full p-2 mb-4 border border-gray-300 rounded-lg disabled:opacity-50"
           />
           <input
             type="file"
             accept=".csv"
             onChange={(e) => processFile(e.target.files[0], 'hitting')}
-            className="block w-full p-2 border rounded-lg mb-4"
+            disabled={isLoading}
+            className="block w-full p-2 border rounded-lg mb-4 disabled:opacity-50"
           />
           {hittingStats.length > 0 ? (
-            <table className="min-w-full border border-gray-200 rounded-lg">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2">Name</th>
-                  <th className="p-2">Position</th>
-                  <th className="p-2">Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getPlayerScores('hitting')
-                  .filter(player => 
-                    player.Name?.toLowerCase().includes(hittingSearchQuery.toLowerCase()) ||
-                    player.POS?.toLowerCase().includes(hittingSearchQuery.toLowerCase())
-                  )
-                  .map((player, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="p-2">{player.Name}</td>
-                      <td className="p-2">{player.POS}</td>
-                      <td className="p-2 text-right">
-                        {player.FantasyPoints.toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <div className={`transition-opacity ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              <table className="min-w-full border border-gray-200 rounded-lg">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Position</th>
+                    <th className="p-2">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getPlayerScores('hitting')
+                    .filter(player => 
+                      player.Name?.toLowerCase().includes(hittingSearchQuery.toLowerCase()) ||
+                      player.POS?.toLowerCase().includes(hittingSearchQuery.toLowerCase())
+                    )
+                    .map((player, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="p-2">{player.Name}</td>
+                        <td className="p-2">{player.POS}</td>
+                        <td className="p-2 text-right">
+                          {player.FantasyPoints.toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-gray-500 mt-4">No hitting stats uploaded yet.</p>
           )}
@@ -183,40 +149,44 @@ const FantasyCalculator = () => {
             placeholder="Search pitching stats..."
             value={pitchingSearchQuery}
             onChange={(e) => setPitchingSearchQuery(e.target.value)}
-            className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            disabled={isLoading}
+            className="w-full p-2 mb-4 border border-gray-300 rounded-lg disabled:opacity-50"
           />
           <input
             type="file"
             accept=".csv"
             onChange={(e) => processFile(e.target.files[0], 'pitching')}
-            className="block w-full p-2 border rounded-lg mb-4"
+            disabled={isLoading}
+            className="block w-full p-2 border rounded-lg mb-4 disabled:opacity-50"
           />
           {pitchingStats.length > 0 ? (
-            <table className="min-w-full border border-gray-200 rounded-lg">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2">Name</th>
-                  <th className="p-2">Position</th>
-                  <th className="p-2">Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getPlayerScores('pitching')
-                  .filter(player => 
-                    player.Name?.toLowerCase().includes(pitchingSearchQuery.toLowerCase()) ||
-                    player.POS?.toLowerCase().includes(pitchingSearchQuery.toLowerCase())
-                  )
-                  .map((player, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="p-2">{player.Name}</td>
-                      <td className="p-2">{player.POS}</td>
-                      <td className="p-2 text-right">
-                        {player.FantasyPoints.toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <div className={`transition-opacity ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              <table className="min-w-full border border-gray-200 rounded-lg">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Position</th>
+                    <th className="p-2">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getPlayerScores('pitching')
+                    .filter(player => 
+                      player.Name?.toLowerCase().includes(pitchingSearchQuery.toLowerCase()) ||
+                      player.POS?.toLowerCase().includes(pitchingSearchQuery.toLowerCase())
+                    )
+                    .map((player, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="p-2">{player.Name}</td>
+                        <td className="p-2">{player.POS}</td>
+                        <td className="p-2 text-right">
+                          {player.FantasyPoints.toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-gray-500 mt-4">No pitching stats uploaded yet.</p>
           )}
