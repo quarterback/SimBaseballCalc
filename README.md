@@ -4,11 +4,31 @@ For years, I've wanted a modular Fantasy calculator that lets you play OOTP like
 
 Ideal state, someday there could be more features to something like this...but it's a limited use case tool and this already surpasses my hopes and dreams. 
 
-# OOTP Fantasy Calculator
-
 ## Features
 
-### Multiple Scoring Systems
+### Game Modes
+
+#### Fantasy Calculator
+- Basic fantasy point calculations
+- Support for multiple scoring systems
+- CSV import functionality
+- Separate hitting and pitching calculations
+
+#### League Budget Valuation
+- Auction-style player valuation
+- Customizable total budget
+- Age impact adjustments
+- Position-based value modifiers
+
+#### Solo DFS (Beat Your Best)
+- Personal best tracking for each scoring system
+- Separate tracking for hitting and pitching
+- Multiple scoring system support
+- CSV import functionality
+- Real-time scoring updates
+- Local storage for personal records
+
+### Scoring Systems
 - **DraftKings DFS Style**
   - Full DraftKings scoring implementation for both hitting and pitching
   - Includes bonuses for complete games, shutouts, and no-hitters
@@ -139,7 +159,6 @@ Required columns:
 - Complete Game Shutout: 3 pts bonus
 - No-Hitter: 6 pts bonus
 
-
 ### Statcast Era
 
 #### Hitting
@@ -182,6 +201,30 @@ Required columns:
 - K: -2 pts
 - HR: 5 pts
 - L: 10 pts
+
+## Solo DFS Mode Details
+
+The Solo DFS (Beat Your Best) mode allows you to compete against your own personal records:
+
+### Features
+- Track personal bests for each scoring system
+- Separate records for hitting and pitching
+- Real-time score calculations
+- Persistent storage of records
+- Player search and filtering
+- Position-based roster requirements
+
+### Roster Requirements
+- Hitting: C, 1B, 2B, 3B, SS, 3 OF
+- Pitching: 2 SP, 1 RP
+
+### Usage
+1. Select your preferred scoring system
+2. Choose between hitting or pitching stats
+3. Import your OOTP CSV export
+4. Build your roster within the position limits
+5. Try to beat your previous best score
+6. Records are saved automatically
 
 ## License
 This project is licensed under the Mozilla Public License 2.0 - see the LICENSE file for details. This means:
