@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
-import React, { useState, useEffect } from 'react';
-import Papa from 'papaparse';
-
 const SoloDFS = () => {
   const [roster, setRoster] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
