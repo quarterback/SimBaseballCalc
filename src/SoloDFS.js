@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
+import React, { useState, useEffect } from 'react';
+import Papa from 'papaparse';
+
 const SoloDFS = () => {
   const [roster, setRoster] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
@@ -11,7 +14,6 @@ const SoloDFS = () => {
   const [error, setError] = useState('');
   const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
   const [statType, setStatType] = useState('hitting');
-  const [bonuses, setBonuses] = useState({});
 
   const scoringSystems = {
     draftKingsDFS: {
@@ -27,19 +29,51 @@ const SoloDFS = () => {
         'CG': 2.5
       }
     },
-    fanduelDFS: {
-      name: 'FanDuel DFS',
+    sabermetricMode: {
+      name: "Sabermetric Mode",
       hitting: {
-        '1B': 3, '2B': 6, '3B': 9, 'HR': 12,
-        'R': 3.2, 'RBI': 3.5, 'BB': 3, 'SB': 6,
-        'CS': -3, 'HBP': 3
+        AVG: 10, OBP: 15, SLG: 12, WAR: 25, BABIP: 5,
       },
       pitching: {
-        'IP': 3, 'K': 3, 'W': 6, 'ER': -3,
-        'H': -0.6, 'BB': -0.6, 'HBP': -0.6,
-        'CG': 3
+        ERA: -5, WHIP: -8, FIP: -5, K/9: 3, WAR: 20,
       }
-    }
+    },
+    defensiveSpecialist: {
+      name: "Defensive Specialist Mode",
+      hitting: {
+        DEF: 20, ZR: 15, ARM: 10, DP: 10,
+      },
+      pitching: {
+        DEF: 20, DRS: 15, ARM: 10, CS: 10,
+      }
+    },
+    hotStreakBonus: {
+      name: "Hot Streak Bonus",
+      hitting: {
+        HR: 10, RBI: 3, R: 3, HOT_STREAK: 15, 
+      },
+      pitching: {
+        IP: 2, K: 3, W: 5, SHUTOUT: 20, HOT_STREAK: 15,
+      }
+    },
+    vintageLeague: {
+      name: "Vintage League",
+      hitting: {
+        AVG: 15, RBI: 3, H: 2, CS: -5,
+      },
+      pitching: {
+        ERA: -10, CG: 10, IP: 3, BB: -3,
+      }
+    },
+    boomOrBust: {
+      name: "Boom or Bust",
+      hitting: {
+        HR: 20, K: -5, ISO: 10, SLG: 8,
+      },
+      pitching: {
+        K: 10, BB: -10, HR: -15, IP: 2,
+      }
+    },
   };
 
   useEffect(() => {
@@ -51,21 +85,18 @@ const SoloDFS = () => {
 
   const calculatePoints = (player, playerBonuses = {}) => {
     if (!player) return 0;
-    
+
     const scoring = scoringSystems[scoringSystem][statType];
     let points = Object.entries(scoring).reduce((total, [stat, value]) => {
-      if (stat === 'CGSO' || stat === 'NH') return total;
+      if (stat === 'HOT_STREAK' && player.hotStreak) {
+        return total + value; // Special condition for Hot Streak
+      }
+      if (stat === 'SHUTOUT' && player.shutout) {
+        return total + value; // Special condition for Shutout
+      }
       const statValue = player[stat] || 0;
       return total + (statValue * value);
     }, 0);
-
-    // Add bonus points
-    if (playerBonuses.CGSO) {
-      points += (scoringSystem === 'draftKingsDFS' ? 2.5 : 3);
-    }
-    if (playerBonuses.NH) {
-      points += (scoringSystem === 'draftKingsDFS' ? 5 : 6);
-    }
 
     return points;
   };
@@ -76,11 +107,9 @@ const SoloDFS = () => {
       return;
     }
 
-    const playerId = `${player.Name}-${player.Team}`;
     const updatedRoster = [...roster, {
       ...player,
-      id: playerId,
-      points: calculatePoints(player, bonuses[playerId] || {})
+      points: calculatePoints(player)
     }];
     setRoster(updatedRoster);
     updateScore(updatedRoster);
@@ -111,28 +140,10 @@ const SoloDFS = () => {
     }
   };
 
-  const toggleBonus = (playerId, bonusType) => {
-    const updatedBonuses = {
-      ...bonuses,
-      [playerId]: {
-        ...(bonuses[playerId] || {}),
-        [bonusType]: !(bonuses[playerId]?.[bonusType])
-      }
-    };
-    setBonuses(updatedBonuses);
-
-    const updatedRoster = roster.map(player => ({
-      ...player,
-      points: calculatePoints(player, updatedBonuses[player.id] || {})
-    }));
-    setRoster(updatedRoster);
-    updateScore(updatedRoster);
-  };
-
   const processFile = async (file) => {
     setLoadingStats(true);
     setError('');
-    
+
     try {
       const text = await file.text();
       Papa.parse(text, {
@@ -195,7 +206,7 @@ const SoloDFS = () => {
             ))}
           </select>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Stats Type:
