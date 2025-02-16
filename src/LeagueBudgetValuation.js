@@ -3,124 +3,155 @@ import Papa from 'papaparse';
 
 const LeagueBudgetValuation = () => {
   const [playerData, setPlayerData] = useState([]);
-  const [leagueBudget, setLeagueBudget] = useState(260); // Default league budget
+  const [totalBudget, setTotalBudget] = useState(260); // Default budget
   const [ageImpact, setAgeImpact] = useState(-0.1); // Default age impact
+  const [sortBy, setSortBy] = useState('OVR'); // Default sorting by OVR
+  const [sortOrder, setSortOrder] = useState('desc'); // Default descending order
 
-  // Process CSV file upload
-  const handleFileUpload = (file) => {
-    Papa.parse(file, {
+  const processPlayerFile = async (file) => {
+    const text = await file.text();
+    Papa.parse(text, {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: true,
       complete: (results) => {
-        setPlayerData(results.data);
+        const players = results.data.map((player) => ({
+          ...player,
+          OVR: parseFloat(player.OVR) || 0,
+          POT: parseFloat(player.POT) || 0,
+          Age: parseInt(player.Age, 10) || 0,
+        }));
+
+        const updatedPlayers = calculateDollarValue(players, totalBudget, ageImpact);
+        setPlayerData(updatedPlayers);
       },
     });
   };
 
-  // Calculate dollar values based on OVR, POT, Age
-  const calculateDollarValues = (players) => {
-    const ovrWeight = 0.5;
-    const potWeight = 0.4;
+  const calculateDollarValue = (players, totalBudget, ageImpact) => {
+    const totalOVR = players.reduce((sum, player) => sum + player.OVR, 0); // Sum of all OVRs
+    const remainingBudget = totalBudget - players.length; // $1 baseline per player
 
-    // Calculate raw dollar values
-    const rawValues = players.map((player) => ({
-      ...player,
-      rawDollarValue:
-        player.OVR * ovrWeight +
-        player.POT * potWeight +
-        player.Age * ageImpact,
-    }));
-
-    // Calculate scaling factor based on the league budget
-    const totalRawValue = rawValues.reduce(
-      (sum, player) => sum + player.rawDollarValue,
-      0
-    );
-    const scalingFactor = leagueBudget / totalRawValue;
-
-    // Apply scaling factor to calculate final dollar value
-    return rawValues.map((player) => ({
-      ...player,
-      DollarValue: (player.rawDollarValue * scalingFactor).toFixed(2),
-    }));
+    return players.map((player) => {
+      const ageMultiplier = 1 + ageImpact * (player.Age - 27); // Neutral age is 27
+      const proportionalValue = (player.OVR / totalOVR) * remainingBudget;
+      const dollarValue = Math.max(1, proportionalValue * ageMultiplier); // At least $1
+      return {
+        ...player,
+        DollarValue: parseFloat(dollarValue.toFixed(2)), // Format to 2 decimal places
+      };
+    });
   };
 
-  // Generate player list with dollar values
-  const playersWithValues = calculateDollarValues(playerData);
+  const sortPlayerData = (field) => {
+    const order = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    const sortedData = [...playerData].sort((a, b) => {
+      if (order === 'asc') return a[field] - b[field];
+      return b[field] - a[field];
+    });
+    setSortBy(field);
+    setSortOrder(order);
+    setPlayerData(sortedData);
+  };
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">League Budget Valuation</h1>
-      
+    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold text-center text-gray-800">League Budget Valuation</h1>
+
       {/* File Upload */}
-      <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700">
-          Upload Player Data:
-        </label>
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Upload Player Data:</label>
         <input
           type="file"
           accept=".csv"
-          onChange={(e) => handleFileUpload(e.target.files[0])}
-          className="p-2 border border-gray-300 rounded-lg"
-        />
-
-        {/* League Budget Input */}
-        <label className="block text-sm font-medium text-gray-700 mt-4">
-          League Budget ($):
-        </label>
-        <input
-          type="number"
-          value={leagueBudget}
-          onChange={(e) => setLeagueBudget(Number(e.target.value))}
-          className="p-2 border border-gray-300 rounded-lg"
-        />
-
-        {/* Age Impact Input */}
-        <label className="block text-sm font-medium text-gray-700 mt-4">
-          Age Impact:
-        </label>
-        <input
-          type="number"
-          step="0.01"
-          value={ageImpact}
-          onChange={(e) => setAgeImpact(Number(e.target.value))}
-          className="p-2 border border-gray-300 rounded-lg"
+          onChange={(e) => processPlayerFile(e.target.files[0])}
+          className="block w-full p-2 border rounded-lg"
         />
       </div>
 
-      {/* Player Table */}
-      {playersWithValues.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 mt-4">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Position</th>
-                <th className="p-2 text-right">Age</th>
-                <th className="p-2 text-right">OVR</th>
-                <th className="p-2 text-right">POT</th>
-                <th className="p-2 text-right">Dollar Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {playersWithValues.map((player, idx) => (
-                <tr
-                  key={idx}
-                  className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                >
-                  <td className="p-2">{player.Name}</td>
-                  <td className="p-2">{player.POS}</td>
-                  <td className="p-2 text-right">{player.Age}</td>
-                  <td className="p-2 text-right">{player.OVR}</td>
-                  <td className="p-2 text-right">{player.POT}</td>
-                  <td className="p-2 text-right">${player.DollarValue}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Settings */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">League Budget ($):</label>
+          <input
+            type="number"
+            value={totalBudget}
+            onChange={(e) => setTotalBudget(parseInt(e.target.value, 10))}
+            className="p-2 border rounded-lg w-full"
+          />
         </div>
-      )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Age Impact:</label>
+          <input
+            type="number"
+            step="0.01"
+            value={ageImpact}
+            onChange={(e) => setAgeImpact(parseFloat(e.target.value))}
+            className="p-2 border rounded-lg w-full"
+          />
+        </div>
+      </div>
+
+      {/* Player Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full table-auto border border-gray-200">
+          <thead className="bg-gray-100">
+            <tr>
+              <th
+                className="p-2 text-left cursor-pointer"
+                onClick={() => sortPlayerData('Name')}
+              >
+                Name
+              </th>
+              <th
+                className="p-2 text-left cursor-pointer"
+                onClick={() => sortPlayerData('Position')}
+              >
+                Position
+              </th>
+              <th
+                className="p-2 text-right cursor-pointer"
+                onClick={() => sortPlayerData('Age')}
+              >
+                Age
+              </th>
+              <th
+                className="p-2 text-right cursor-pointer"
+                onClick={() => sortPlayerData('OVR')}
+              >
+                OVR
+              </th>
+              <th
+                className="p-2 text-right cursor-pointer"
+                onClick={() => sortPlayerData('POT')}
+              >
+                POT
+              </th>
+              <th
+                className="p-2 text-right cursor-pointer"
+                onClick={() => sortPlayerData('DollarValue')}
+              >
+                Dollar Value
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {playerData.map((player, idx) => (
+              <tr
+                key={idx}
+                className={`${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100`}
+              >
+                <td className="p-2">{player.Name}</td>
+                <td className="p-2">{player.Position}</td>
+                <td className="p-2 text-right">{player.Age}</td>
+                <td className="p-2 text-right">{player.OVR}</td>
+                <td className="p-2 text-right">{player.POT}</td>
+                <td className="p-2 text-right">${player.DollarValue}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
