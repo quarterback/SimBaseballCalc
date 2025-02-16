@@ -9,9 +9,10 @@ function App() {
     <Router>
       <div className="App min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Fantasy Baseball Calculator</h1>
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+            Fantasy Baseball Calculator
+          </h1>
           
-          {/* Navigation Links */}
           <nav className="flex justify-center space-x-6 mb-6">
             <Link 
               to="/" 
