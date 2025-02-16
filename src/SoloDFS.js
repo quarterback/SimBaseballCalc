@@ -11,6 +11,7 @@ const SoloDFS = () => {
   const [error, setError] = useState('');
   const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
   const [statType, setStatType] = useState('hitting');
+  const [bonuses, setBonuses] = useState({});
 
   const scoringSystems = {
     draftKingsDFS: {
@@ -29,48 +30,81 @@ const SoloDFS = () => {
     sabermetricMode: {
       name: "Sabermetric Mode",
       hitting: {
-        AVG: 10, OBP: 15, SLG: 12, WAR: 25, BABIP: 5,
+        'AVG': 10,
+        'OBP': 15,
+        'SLG': 12,
+        'WAR': 25,
+        'BABIP': 5
       },
       pitching: {
-        ERA: -5, WHIP: -8, FIP: -5, K/9: 3, WAR: 20,
+        'ERA': -5,
+        'WHIP': -8,
+        'FIP': -5,
+        'K/9': 3,
+        'WAR': 20
       }
     },
     defensiveSpecialist: {
       name: "Defensive Specialist Mode",
       hitting: {
-        DEF: 20, ZR: 15, ARM: 10, DP: 10,
+        'ZR': 15,
+        'Range': 10,
+        'Error': -5,
+        'DP': 10
       },
       pitching: {
-        DEF: 20, DRS: 15, ARM: 10, CS: 10,
+        'GB%': 10,
+        'WP': -5,
+        'PB': -5,
+        'CS%': 10
       }
     },
     hotStreakBonus: {
       name: "Hot Streak Bonus",
       hitting: {
-        HR: 10, RBI: 3, R: 3, HOT_STREAK: 15, 
+        'HR': 10,
+        'RBI': 3,
+        'R': 3,
+        'Streak': 15
       },
       pitching: {
-        IP: 2, K: 3, W: 5, SHUTOUT: 20, HOT_STREAK: 15,
+        'IP': 2,
+        'K': 3,
+        'W': 5,
+        'SHO': 20,
+        'Streak': 15
       }
     },
     vintageLeague: {
       name: "Vintage League",
       hitting: {
-        AVG: 15, RBI: 3, H: 2, CS: -5,
+        'AVG': 15,
+        'RBI': 3,
+        'H': 2,
+        'CS': -5
       },
       pitching: {
-        ERA: -10, CG: 10, IP: 3, BB: -3,
+        'ERA': -10,
+        'CG': 10,
+        'IP': 3,
+        'BB': -3
       }
     },
     boomOrBust: {
       name: "Boom or Bust",
       hitting: {
-        HR: 20, K: -5, ISO: 10, SLG: 8,
+        'HR': 20,
+        'K': -5,
+        'SLG': 8,
+        'TB': 5
       },
       pitching: {
-        K: 10, BB: -10, HR: -15, IP: 2,
+        'K': 10,
+        'BB': -10,
+        'HR': -15,
+        'IP': 2
       }
-    },
+    }
   };
 
   useEffect(() => {
@@ -85,17 +119,44 @@ const SoloDFS = () => {
 
     const scoring = scoringSystems[scoringSystem][statType];
     let points = Object.entries(scoring).reduce((total, [stat, value]) => {
-      if (stat === 'HOT_STREAK' && player.hotStreak) {
-        return total + value; // Special condition for Hot Streak
-      }
-      if (stat === 'SHUTOUT' && player.shutout) {
-        return total + value; // Special condition for Shutout
-      }
+      // Get base stat value
       const statValue = player[stat] || 0;
       return total + (statValue * value);
     }, 0);
 
+    // Add bonus points for pitchers
+    if (player.POS?.includes('P')) {
+      if (playerBonuses.CGSO) {
+        points += scoringSystem === 'draftKingsDFS' ? 2.5 : 3;
+      }
+      if (playerBonuses.NH) {
+        points += scoringSystem === 'draftKingsDFS' ? 5 : 6;
+      }
+    }
+
     return points;
+  };
+
+  const toggleBonus = (playerId, bonusType) => {
+    const updatedBonuses = {
+      ...bonuses,
+      [playerId]: {
+        ...(bonuses[playerId] || {}),
+        [bonusType]: !(bonuses[playerId]?.[bonusType])
+      }
+    };
+    setBonuses(updatedBonuses);
+
+    // Recalculate roster points
+    const updatedRoster = roster.map(player => ({
+      ...player,
+      points: calculatePoints(
+        player, 
+        updatedBonuses[player.id] || {}
+      )
+    }));
+    setRoster(updatedRoster);
+    updateScore(updatedRoster);
   };
 
   const addToRoster = (player) => {
@@ -104,9 +165,11 @@ const SoloDFS = () => {
       return;
     }
 
+    const playerId = `${player.Name}-${player.Team || 'unknown'}`;
     const updatedRoster = [...roster, {
       ...player,
-      points: calculatePoints(player)
+      id: playerId,
+      points: calculatePoints(player, bonuses[playerId] || {})
     }];
     setRoster(updatedRoster);
     updateScore(updatedRoster);
@@ -154,6 +217,7 @@ const SoloDFS = () => {
           }
 
           const processedPlayers = results.data.map(player => {
+            // Calculate singles for hitting stats
             const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
             return {
               ...player,
@@ -175,6 +239,17 @@ const SoloDFS = () => {
       setLoadingStats(false);
     }
   };
+
+  const filteredPlayers = availablePlayers.filter(player => {
+    const searchLower = searchQuery.toLowerCase();
+    const isPitcher = player.POS?.includes('P');
+    const matchesType = (statType === 'pitching') === isPitcher;
+    
+    return matchesType && (
+      player.Name?.toLowerCase().includes(searchLower) ||
+      player.POS?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -251,25 +326,20 @@ const SoloDFS = () => {
                 </tr>
               </thead>
               <tbody>
-                {availablePlayers
-                  .filter(player => 
-                    player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    player.POS?.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((player, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">{player.Name}</td>
-                      <td className="p-2">{player.POS}</td>
-                      <td className="p-2 text-right">
-                        <button
-                          onClick={() => addToRoster(player)}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                          Add
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                {filteredPlayers.map((player, idx) => (
+                  <tr key={idx} className="border-t">
+                    <td className="p-2">{player.Name}</td>
+                    <td className="p-2">{player.POS}</td>
+                    <td className="p-2 text-right">
+                      <button
+                        onClick={() => addToRoster(player)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      >
+                        Add
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
