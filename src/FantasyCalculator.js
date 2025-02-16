@@ -9,7 +9,6 @@ const FantasyCalculator = () => {
   const [pitchingSearchQuery, setPitchingSearchQuery] = useState('');
   const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
   const [loading, setLoading] = useState(false);
-
   const scoringSystems = {
   draftKingsDFS: {
     name: 'DraftKings DFS',
@@ -195,16 +194,6 @@ const FantasyCalculator = () => {
   }
 };
 
-  const filteredHittingStats = hittingStats.filter((player) =>
-    player.Name.toLowerCase().includes(hittingSearchQuery.toLowerCase()) ||
-    player.POS.toLowerCase().includes(hittingSearchQuery.toLowerCase())
-  );
-
-  const filteredPitchingStats = pitchingStats.filter((player) =>
-    player.Name.toLowerCase().includes(pitchingSearchQuery.toLowerCase()) ||
-    player.POS.toLowerCase().includes(pitchingSearchQuery.toLowerCase())
-  );
-
   const processFile = async (file, type) => {
     setLoading(true);
     const text = await file.text();
@@ -215,11 +204,11 @@ const FantasyCalculator = () => {
       complete: (results) => {
         const stats = results.data.map((player) => ({
           ...player,
-          '1B': type === 'hitting' ? player.H - (player['2B'] + player['3B'] + player.HR) : undefined
+          '1B': type === 'hitting' ? player.H - (player['2B'] + player['3B'] + player.HR) : undefined,
         }));
         type === 'hitting' ? setHittingStats(stats) : setPitchingStats(stats);
         setLoading(false);
-      }
+      },
     });
   };
 
@@ -232,10 +221,10 @@ const FantasyCalculator = () => {
   };
 
   const getPlayerScores = (type) => {
-    const stats = type === 'hitting' ? filteredHittingStats : filteredPitchingStats;
+    const stats = type === 'hitting' ? hittingStats : pitchingStats;
     return stats.map((player) => ({
       ...player,
-      FantasyPoints: calculatePoints(player, type, scoringSystem)
+      FantasyPoints: calculatePoints(player, type, scoringSystem),
     })).sort((a, b) => b.FantasyPoints - a.FantasyPoints);
   };
 
@@ -257,6 +246,7 @@ const FantasyCalculator = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Hitting Stats */}
         <Card>
           <CardHeader>
             <CardTitle>Hitting Stats</CardTitle>
@@ -275,93 +265,75 @@ const FantasyCalculator = () => {
               onChange={(e) => processFile(e.target.files[0], 'hitting')}
               className="block w-full p-2 border rounded-lg mb-4"
             />
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto border border-gray-200">
+            {hittingStats.length > 0 ? (
+              <table className="min-w-full border border-gray-200 rounded-lg">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Points</th>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Position</th>
+                    <th className="p-2">Points</th>
                   </tr>
                 </thead>
                 <tbody>
                   {getPlayerScores('hitting').map((player, idx) => (
-                    <tr key={idx} className={`${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                      <td>{player.Name}</td>
-                      <td>{player.POS}</td>
-                      <td className="text-right">{player.FantasyPoints.toFixed(1)}</td>
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="p-2">{player.Name}</td>
+                      <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.FantasyPoints.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            ) : (
+              <p className="text-gray-500 mt-4">No hitting stats uploaded yet.</p>
+            )}
           </CardContent>
         </Card>
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <Card>
-    <CardHeader>
-      <CardTitle>Pitching Stats</CardTitle>
-    </CardHeader>
-    <CardContent>
-      {/* File Input */}
-      <label className="block">
-        <span className="block text-sm font-medium text-gray-700 mb-2">
-          Upload Pitching Stats (CSV):
-        </span>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={(e) => processFile(e.target.files[0], 'pitching')}
-          className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          aria-label="Upload pitching stats file"
-        />
-      </label>
 
-      {/* Loading Indicator */}
-      {loading && <p className="text-gray-500 mt-2">Processing file...</p>}
-
-      {/* Table or No Data Message */}
-      {pitchingStats.length > 0 ? (
-        <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-2 text-left text-sm font-medium text-gray-700" scope="col">
-                  Name
-                </th>
-                <th className="p-2 text-left text-sm font-medium text-gray-700" scope="col">
-                  Position
-                </th>
-                <th className="p-2 text-right text-sm font-medium text-gray-700" scope="col">
-                  Points
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {getPlayerScores('pitching').map((player, idx) => (
-                <tr
-                  key={idx}
-                  className={`hover:bg-gray-50 ${
-                    idx % 2 === 0 ? 'bg-gray-100' : 'bg-white'
-                  }`}
-                >
-                  <td className="p-2 text-sm text-gray-700">{player.Name}</td>
-                  <td className="p-2 text-sm text-gray-700">{player.POS}</td>
-                  <td className="p-2 text-sm text-right text-gray-700">
-                    {player.FantasyPoints.toFixed(1)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-gray-500 mt-4">No pitching stats uploaded yet. Please upload a CSV file.</p>
-      )}
-    </CardContent>
-  </Card>
-</div>
-
+        {/* Pitching Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pitching Stats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <input
+              type="text"
+              placeholder="Search pitching stats..."
+              value={pitchingSearchQuery}
+              onChange={(e) => setPitchingSearchQuery(e.target.value)}
+              className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => processFile(e.target.files[0], 'pitching')}
+              className="block w-full p-2 border rounded-lg mb-4"
+            />
+            {pitchingStats.length > 0 ? (
+              <table className="min-w-full border border-gray-200 rounded-lg">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Position</th>
+                    <th className="p-2">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getPlayerScores('pitching').map((player, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="p-2">{player.Name}</td>
+                      <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.FantasyPoints.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-gray-500 mt-4">No pitching stats uploaded yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
