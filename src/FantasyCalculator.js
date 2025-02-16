@@ -10,62 +10,190 @@ const FantasyCalculator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const scoringSystems = {
-    draftKingsDFS: {
-      name: 'DraftKings DFS',
-      hitting: {
-        '1B': 3,
-        '2B': 5,
-        '3B': 8,
-        'HR': 10,
-        'R': 2,
-        'RBI': 2,
-        'BB': 2,
-        'SB': 5,
-        'CS': -2,
-        'HBP': 2
-      },
-      pitching: {
-        'IP': 2.25,
-        'K': 2,
-        'W': 4,
-        'ER': -2,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 2.5,
-        'CGSO': 2.5,
-        'NH': 5
-      }
+ const scoringSystems = {
+  draftKingsDFS: {
+    name: 'DraftKings DFS',
+    hitting: {
+      '1B': 3,
+      '2B': 5,
+      '3B': 8,
+      'HR': 10,
+      'R': 2,
+      'RBI': 2,
+      'BB': 2,
+      'SB': 5,
+      'CS': -2,
+      'HBP': 2
     },
-    fanduelDFS: {
-      name: 'FanDuel DFS',
-      hitting: {
-        '1B': 3,
-        '2B': 6,
-        '3B': 9,
-        'HR': 12,
-        'R': 3.2,
-        'RBI': 3.5,
-        'BB': 3,
-        'SB': 6,
-        'CS': -3,
-        'HBP': 3
-      },
-      pitching: {
-        'IP': 3,
-        'K': 3,
-        'W': 6,
-        'ER': -3,
-        'H': -0.6,
-        'BB': -0.6,
-        'HBP': -0.6,
-        'CG': 3,
-        'CGSO': 3,
-        'NH': 6
-      }
+    pitching: {
+      'IP': 2.25,
+      'K': 2,
+      'W': 4,
+      'ER': -2,
+      'H': -0.6,
+      'BB': -0.6,
+      'HBP': -0.6,
+      'CG': 2.5,
+      'CGSO': 2.5,
+      'NH': 5
     }
-  };
+  },
+  fanduelDFS: {
+    name: 'FanDuel DFS',
+    hitting: {
+      '1B': 3,
+      '2B': 6,
+      '3B': 9,
+      'HR': 12,
+      'R': 3.2,
+      'RBI': 3.5,
+      'BB': 3,
+      'SB': 6,
+      'CS': -3,
+      'HBP': 3
+    },
+    pitching: {
+      'IP': 3,
+      'K': 3,
+      'W': 6,
+      'ER': -3,
+      'H': -0.6,
+      'BB': -0.6,
+      'HBP': -0.6,
+      'CG': 3,
+      'CGSO': 3,
+      'NH': 6
+    }
+  },
+  sabermetricDFS: {
+    name: 'Sabermetric DFS',
+    hitting: {
+      '1B': 2,
+      '2B': 4,
+      '3B': 6,
+      'HR': 8,
+      'R': 1.5,
+      'RBI': 1.2,
+      'BB': 3,
+      'SB': 4,
+      'CS': -4,
+      'HBP': 3,
+      'AVG': 10,
+      'OBP': 15,
+      'SLG': 12
+    },
+    pitching: {
+      'IP': 3,
+      'K': 2.5,
+      'BB': -2,
+      'HR': -4,
+      'ERA': -5,
+      'WHIP': -8,
+      'K/9': 2,
+      'K/BB': 3,
+      'FIP': -5
+    }
+  },
+  powerHitter: {
+    name: 'Power Hitter League',
+    hitting: {
+      '1B': 1,
+      '2B': 3,
+      '3B': 5,
+      'HR': 15,
+      'R': 2,
+      'RBI': 3,
+      'BB': 1,
+      'SB': 1,
+      'SLG': 10,
+      'ISO': 12
+    },
+    pitching: {
+      'IP': 2,
+      'K': 3,
+      'W': 5,
+      'ER': -1,
+      'H': -0.5,
+      'BB': -0.5,
+      'HR': -3
+    }
+  },
+  smallBall: {
+    name: 'Small Ball League',
+    hitting: {
+      '1B': 4,
+      '2B': 6,
+      '3B': 8,
+      'HR': 8,
+      'R': 3,
+      'RBI': 2,
+      'BB': 3,
+      'SB': 8,
+      'CS': -1,
+      'AVG': 15
+    },
+    pitching: {
+      'IP': 4,
+      'K': 2,
+      'W': 5,
+      'SV': 8,
+      'HLD': 6,
+      'ER': -2,
+      'H': -0.5,
+      'BB': -1
+    }
+  },
+  roto5x5: {
+    name: 'Rotisserie 5x5',
+    hitting: ['R', 'HR', 'RBI', 'SB', 'AVG'],
+    pitching: ['W', 'SV', 'ERA', 'WHIP', 'K']
+  },
+  statcastEra: {
+    name: 'Statcast Era',
+    hitting: {
+      'HR': 4,
+      'BB': 3,
+      'K': -2,
+      'OBP': 15,
+      'SLG': 10,
+      'ISO': 8,
+      'BABIP': 5,
+      'OPS': 12,
+      'WAR': 10
+    },
+    pitching: {
+      'K/9': 5,
+      'BB/9': -3,
+      'HR/9': -5,
+      'WHIP': -8,
+      'FIP': -6,
+      'ERA+': 4,
+      'WAR': 8
+    }
+  },
+  backwardsBaseball: {
+    name: 'Backwards Baseball',
+    hitting: {
+      'AB': 1,
+      'H': -2,
+      'HR': -10,
+      'RBI': -2,
+      'BB': -3,
+      'K': 3,
+      'GIDP': 5,
+      'CS': 4
+    },
+    pitching: {
+      'IP': 2,
+      'ER': 3,
+      'H': 1,
+      'BB': 2,
+      'K': -2,
+      'HR': 5,
+      'L': 10
+    }
+  }
+};
 
   const calculatePoints = (player, type) => {
     const scoring = scoringSystems[scoringSystem][type];
