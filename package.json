@@ -1,50 +1,50 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import FantasyCalculator from './FantasyCalculator';
-import LeagueBudgetValuation from './LeagueBudgetValuation';
-import SoloDFS from './SoloDFS';
-
-function App() {
-  return (
-    <Router>
-      <div className="App min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-            Fantasy Baseball Calculator
-          </h1>
-          
-          <nav className="flex justify-center space-x-6 mb-6">
-            <Link 
-              to="/" 
-              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Fantasy Calculator
-            </Link>
-            <Link 
-              to="/league-budget" 
-              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              League Budget
-            </Link>
-            <Link 
-              to="/solo-dfs" 
-              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Solo DFS
-            </Link>
-          </nav>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <Routes>
-              <Route path="/" element={<FantasyCalculator />} />
-              <Route path="/league-budget" element={<LeagueBudgetValuation />} />
-              <Route path="/solo-dfs" element={<SoloDFS />} />
-            </Routes>
-          </div>
-        </div>
-      </div>
-    </Router>
-  );
+{
+  "name": "fantasy-baseball-calculator",
+  "version": "1.2.0",
+  "description": "A fantasy baseball scoring calculator for OOTP simulations",
+  "main": "index.js",
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "autoprefixer": "^10.4.14",
+    "lodash": "^4.17.21",
+    "papaparse": "^5.4.1",
+    "postcss": "^8.4.23",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.1",
+    "react-scripts": "5.0.1",
+    "tailwindcss": "^3.3.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "postcss-preset-env": "^8.3.2"
+  },
+  "author": "RB",
+  "license": "MPL-2.0"
 }
-
-export default App;
