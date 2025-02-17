@@ -20,6 +20,33 @@ const DFSAI = () => {
     }
   };
 
+  const aiPersonalities = [
+    { name: 'KateParkfactor', strategy: 'venueAnalytics' },
+    { name: 'xWOBA_Warrior', strategy: 'advancedStats' },
+    { name: 'Sarah_Numbers', strategy: 'probabilityBased' },
+    { name: 'TomTheStacker', strategy: 'stackLineups' },
+    { name: 'AceHunter_Mike', strategy: 'elitePitcher' },
+    { name: 'ValueJohn_DFS', strategy: 'valueHunting' },
+    { name: 'CindyContact', strategy: 'highFloor' },
+    { name: 'Dave_LaunchAngle', strategy: 'powerUpside' },
+    { name: 'RobertsonK9', strategy: 'strikeoutHeavy' },
+    { name: 'JenStreakSpotter', strategy: 'hotHands' },
+    { name: 'WeatherWatcherAl', strategy: 'weatherBased' },
+    { name: 'MariaMatchups', strategy: 'matchupBased' },
+    { name: 'FadeTheChalk_Sam', strategy: 'contrarian' },
+    { name: 'LowOwned_Lisa', strategy: 'lowOwnership' },
+    { name: 'ReversePublic', strategy: 'antiConsensus' },
+    { name: 'BallparkBetty', strategy: 'homeTeamStack' },
+    { name: 'SpeedsterSteve', strategy: 'baserunning' },
+    { name: 'DefensiveDiana', strategy: 'runPrevention' },
+    { name: 'FavoriteTeamFred', strategy: 'biased' },
+    { name: 'DartThrowDan', strategy: 'random' },
+    { name: 'GutFeelGrace', strategy: 'emotional' },
+    { name: 'YesterdayHero', strategy: 'chasePast' },
+    { name: 'TiltedTony', strategy: 'tiltChasing' },
+    { name: 'FOMO_Frank', strategy: 'fomo' }
+  ];
+
   const processFile = (file) => {
     setLoadingStats(true);
     setError('');
@@ -37,13 +64,11 @@ const DFSAI = () => {
             return;
           }
 
-          const processedPlayers = results.data.map(player => {
-            return {
-              ...player,
-              '1B': player.H - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
-              points: 0
-            };
-          });
+          const processedPlayers = results.data.map(player => ({
+            ...player,
+            '1B': player.H - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
+            points: 0
+          }));
 
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
@@ -55,6 +80,37 @@ const DFSAI = () => {
       });
     };
     reader.readAsText(file);
+  };
+
+  const calculatePoints = (player) => {
+    const scoring = scoringSystems[scoringSystem][statType];
+    return Object.entries(scoring).reduce((total, [stat, value]) => total + (player[stat] || 0) * value, 0);
+  };
+
+  const generateAiTeams = () => {
+    if (availablePlayers.length === 0) {
+      setError('No player data available.');
+      return;
+    }
+
+    let teams = aiPersonalities.map(personality => {
+      let selectedPlayers = availablePlayers.sort(() => 0.5 - Math.random()).slice(0, 9);
+      let totalPoints = selectedPlayers.reduce((sum, player) => sum + calculatePoints(player), 0);
+      return { name: personality.name, score: totalPoints, roster: selectedPlayers };
+    });
+
+    if (difficulty === 'hard') {
+      teams.forEach(team => team.score *= 1.1);
+    } else if (difficulty === 'easy') {
+      teams.forEach(team => team.score *= 0.9);
+    }
+    
+    setAiTeams(teams);
+  };
+
+  const lockGame = () => {
+    setGameLocked(true);
+    generateAiTeams();
   };
 
   return (
@@ -76,33 +132,23 @@ const DFSAI = () => {
         />
       </div>
 
-      {/* Display Available Players */}
-      {availablePlayers.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold mb-4">Available Players</h3>
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">POS</th>
-                <th className="p-2 text-left">TM</th>
-                <th className="p-2 text-right">HR</th>
-                <th className="p-2 text-right">RBI</th>
-                <th className="p-2 text-right">K</th>
-                <th className="p-2 text-right">IP</th>
-              </tr>
+      {/* Lock Lineup & Generate AI Teams */}
+      <button onClick={lockGame} disabled={gameLocked || availablePlayers.length === 0} className="bg-blue-500 text-white p-2 rounded mt-2">
+        Lock Lineup & Generate AI Teams
+      </button>
+
+      {/* Leaderboard */}
+      {gameLocked && (
+        <div>
+          <h3 className="text-xl font-bold mt-4">Leaderboard</h3>
+          <table className="table-auto w-full border">
+            <thead>
+              <tr><th>User/AI</th><th>Score</th></tr>
             </thead>
             <tbody>
-              {availablePlayers.map((player, idx) => (
-                <tr key={idx} className="border-t">
-                  <td className="p-2">{player.Name}</td>
-                  <td className="p-2">{player.POS}</td>
-                  <td className="p-2">{player.TM}</td>
-                  <td className="p-2 text-right">{player.HR}</td>
-                  <td className="p-2 text-right">{player.RBI}</td>
-                  <td className="p-2 text-right">{player.K}</td>
-                  <td className="p-2 text-right">{player.IP}</td>
-                </tr>
+              <tr><td>You</td><td>{currentScore.toFixed(1)}</td></tr>
+              {aiTeams.map((team, idx) => (
+                <tr key={idx}><td>{team.name}</td><td>{team.score.toFixed(1)}</td></tr>
               ))}
             </tbody>
           </table>
