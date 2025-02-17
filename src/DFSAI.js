@@ -14,12 +14,15 @@ const DFSAI = () => {
   const [aiTeams, setAiTeams] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [winner, setWinner] = useState(null);
+  const [positionFilter, setPositionFilter] = useState('ALL');
+
 
   // Constants
   const SALARY_CAP = 50000;
   const MIN_SALARY = 3000;
   const symbols = ['_', '', '.'];
   const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
+  const POSITIONS = ['ALL', 'SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   const ROSTER_REQUIREMENTS = {
     'SP': { min: 1, max: 2 },
@@ -61,21 +64,7 @@ const generateRandomUser = () => {
 
     const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
     const symbols = ['_', '', '.', '-', '#'];
-
-    // Constructing a username with more variation
-    return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${middleParts[Math.floor(Math.random() * middleParts.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}${numbers()}`;
-};
-    
-    const patterns = [
-      () => `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${numbers()}`,
-      () => `${suffixes[Math.floor(Math.random() * suffixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${numbers()}`,
-      () => `${prefixes[Math.floor(Math.random() * prefixes.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}`,
-      () => `The${suffixes[Math.floor(Math.random() * suffixes.length)]}${numbers()}`
-    ];
-
-    return patterns[Math.floor(Math.random() * patterns.length)]();
-  };
-
+ 
   const generateCompetitorPool = (count = 20) => {
     return Array(count).fill(null).map(() => ({
       name: generateRandomUser(),
