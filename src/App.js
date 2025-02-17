@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import FantasyCalculator from './FantasyCalculator';
-import LeagueBudgetValuation from './LeagueBudgetValuation';
+import SeasonDFS from './SeasonDFS';
 import SoloDFS from './SoloDFS';
 import DFSAI from './DFSAI';
 
@@ -21,12 +21,12 @@ function App() {
             >
               Fantasy Calculator
             </Link>
-            <Link 
-              to="/league-budget" 
-              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              League Budget
-            </Link>
+<Link 
+  to="/season-dfs" 
+  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+>
+  Season DFS
+</Link>
             <Link 
               to="/solo-dfs" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -44,7 +44,7 @@ function App() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <Routes>
               <Route path="/" element={<FantasyCalculator />} />
-              <Route path="/league-budget" element={<LeagueBudgetValuation />} />
+              <Route path="/season-dfs" element={<SeasonDFS />} />
               <Route path="/solo-dfs" element={<SoloDFS />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
             </Routes>
