@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Papa from 'papaparse';
 
 const DFSAI = () => {
+  // State declarations
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [userRoster, setUserRoster] = useState([]);
   const [currentSalary, setCurrentSalary] = useState(0);
@@ -14,26 +15,41 @@ const DFSAI = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [winner, setWinner] = useState(null);
 
+  // Constants
   const SALARY_CAP = 50000;
   const MIN_SALARY = 3000;
+  const symbols = ['_', '', '.'];
+  const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
 
   const ROSTER_REQUIREMENTS = {
-    'P': 2,
-    'C': 1,
-    '1B': 1,
-    '2B': 1,
-    '3B': 1,
-    'SS': 1,
-    'OF': 2,
-    'UTIL': 1
+    'SP': { min: 1, max: 2 },
+    'RP': { min: 1, max: 2 },
+    'C': { min: 1, max: 1 },
+    '1B': { min: 1, max: 1 },
+    '2B': { min: 1, max: 1 },
+    '3B': { min: 1, max: 1 },
+    'SS': { min: 1, max: 1 },
+    'OF': { min: 2, max: 3 },
+    'UTIL': { min: 0, max: 1 }
   };
 
-  // Random username generation
+  // Username generation
   const generateRandomUser = () => {
-    const prefixes = ['DFS', 'Fantasy', 'Ball', 'Base', 'Diamond', 'Stats', 'Money', 'Pro', 'Grinder', 'Daily'];
-    const suffixes = ['King', 'Queen', 'Champ', 'Master', 'Guru', 'Wizard', 'Beast', 'Expert', 'Boss', 'Shark'];
-    const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
-    const symbols = ['_', '', '.'];
+    const prefixes = [
+      'DFS', 'Fantasy', 'Ball', 'Base', 'Diamond', 'Stats', 'Money', 'Pro', 'Grinder', 'Daily',
+      'MLB', 'Pitcher', 'Slugger', 'Hitter', 'Closer', 'Ace', 'Heater', 'Knuckle', 'Curveball', 
+      'LaunchAngle', 'ExitVelo', 'xStats', 'WARlord', 'Sabermetric', 'BigFly', 'Moonshot', 
+      'Roto', 'CashGame', 'Steals', 'OBP', 'OPS', 'Barrels', 'NoHitter', 'PowerBat', 'GPP', 
+      'SpinRate', 'OutfieldCannon', 'DingerDealer', 'WalkOff', 'CyYoung', 'MVP', 'GoldGlove'
+    ];
+
+    const suffixes = [
+      'King', 'Queen', 'Champ', 'Master', 'Guru', 'Wizard', 'Beast', 'Expert', 'Boss', 'Shark', 
+      'Warrior', 'Destroyer', 'Legend', 'Savage', 'Clutch', 'GOAT', 'Cannon', 'Swingman', 'Whiff', 
+      'Slugger', 'Killer', 'Dinger', 'Velocity', 'Cleanup', 'HotStreak', 'Stealer', 'RBI', 'Boomer', 
+      'Splitter', 'Heater', 'Cutter', 'Sinker', 'Slurve', 'Perfecto', 'ClutchHit', 'TripleCrown', 
+      'LaunchPad', 'HOF', 'Fastball', 'OverTheFence', 'WarningTrack', 'Lumberjack'
+    ];
     
     const patterns = [
       () => `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${numbers()}`,
@@ -52,7 +68,6 @@ const DFSAI = () => {
     }));
   };
 
-  // Regular competitors (small pool that's always included)
   const regularCompetitors = [
     { name: 'DailyGrinder', isRegular: true },
     { name: 'StatShark', isRegular: true },
@@ -61,6 +76,7 @@ const DFSAI = () => {
     { name: 'ProPlayer', isRegular: true }
   ];
 
+  // File processing and stat calculations
   const processFile = async (file) => {
     setLoadingStats(true);
     setError('');
@@ -121,7 +137,8 @@ const DFSAI = () => {
 
   const generateSalary = (points, position) => {
     const positionMultiplier = {
-      'P': 1.4,
+      'SP': 1.4,
+      'RP': 1.3,
       'C': 1.2,
       'SS': 1.15,
       'OF': 0.9
@@ -132,6 +149,7 @@ const DFSAI = () => {
     return Math.max(MIN_SALARY, Math.round(randomizedSalary));
   };
 
+  // Roster management
   const validateRoster = (roster) => {
     const positionCounts = roster.reduce((counts, player) => {
       const pos = player.POS;
@@ -139,18 +157,22 @@ const DFSAI = () => {
       return counts;
     }, {});
 
-    // Check each position requirement except UTIL
-    for (const [pos, required] of Object.entries(ROSTER_REQUIREMENTS)) {
-      if (pos === 'UTIL') continue;
-      if ((positionCounts[pos] || 0) < required) {
-        return `Need ${required} ${pos} player${required > 1 ? 's' : ''}. Have ${positionCounts[pos] || 0}`;
-      }
+    // Check if we have enough pitchers total (SP + RP)
+    const totalPitchers = (positionCounts['SP'] || 0) + (positionCounts['RP'] || 0);
+    if (totalPitchers < 2) {
+      return `Need 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
     }
 
-    // Validate total roster size accounts for UTIL
-    const requiredTotal = Object.values(ROSTER_REQUIREMENTS).reduce((a, b) => a + b, 0);
-    if (roster.length < requiredTotal) {
-      return `Need ${requiredTotal} total players (including 1 UTIL)`;
+    // Check each position's min/max requirements
+    for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
+      if (pos === 'UTIL') continue;
+      const count = positionCounts[pos] || 0;
+      if (count < requirement.min) {
+        return `Need at least ${requirement.min} ${pos} player${requirement.min > 1 ? 's' : ''}. Have ${count}`;
+      }
+      if (count > requirement.max) {
+        return `Maximum ${requirement.max} ${pos} players allowed. Have ${count}`;
+      }
     }
 
     return null;
@@ -168,13 +190,20 @@ const DFSAI = () => {
       return;
     }
 
-    const positionError = validateRoster([...userRoster, player]);
-    if (positionError) {
-      setError(positionError);
+    // Check if adding this player would exceed position limits
+    const updatedRoster = [...userRoster, player];
+    const positionCounts = updatedRoster.reduce((counts, p) => {
+      const pos = p.POS;
+      counts[pos] = (counts[pos] || 0) + 1;
+      return counts;
+    }, {});
+
+    const requirement = ROSTER_REQUIREMENTS[player.POS];
+    if (requirement && positionCounts[player.POS] > requirement.max) {
+      setError(`Maximum ${requirement.max} ${player.POS} players allowed`);
       return;
     }
 
-    const updatedRoster = [...userRoster, player];
     setUserRoster(updatedRoster);
     setCurrentSalary(newSalary);
     updateScore(updatedRoster);
@@ -193,6 +222,7 @@ const DFSAI = () => {
     setCurrentScore(score);
   };
 
+  // AI team generation
   const generateAiTeam = (competitor) => {
     const strategy = {
       powerFocus: Math.random(),
@@ -210,7 +240,7 @@ const DFSAI = () => {
     const evaluatePlayer = (player) => {
       let value = player.points;
       
-      if (player.POS?.includes('P')) {
+      if (player.POS?.includes('SP') || player.POS?.includes('RP')) {
         value *= (1 + strategy.pitchingFocus);
       } else {
         value *= (1 + (player.HR || 0) * strategy.powerFocus);
@@ -227,11 +257,12 @@ const DFSAI = () => {
     };
 
     // Fill required positions
-    for (const [pos, count] of Object.entries(ROSTER_REQUIREMENTS)) {
-      if (pos === 'UTIL') continue; // Handle UTIL separately
+    for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
+      if (pos === 'UTIL') continue;
 
+      const count = requirement.min;
       const positionPlayers = availablePool
-        .filter(p => p.POS?.includes(pos))
+        .filter(p => p.POS === pos)
         .filter(p => p.salary <= SALARY_CAP - totalSalary)
         .sort((a, b) => evaluatePlayer(b) - evaluatePlayer(a));
 
@@ -245,7 +276,7 @@ const DFSAI = () => {
 
     // Add UTIL player
     const utilPlayers = availablePool
-      .filter(p => !p.POS?.includes('P'))
+      .filter(p => !p.POS?.includes('SP') && !p.POS?.includes('RP'))
       .filter(p => p.salary <= SALARY_CAP - totalSalary)
       .sort((a, b) => evaluatePlayer(b) - evaluatePlayer(a));
 
@@ -298,7 +329,7 @@ const DFSAI = () => {
       ...aiResults
     ].sort((a, b) => b.score - a.score);
 
-    setAiTeams(allResults);
+       setAiTeams(allResults);
     setWinner(allResults[0]);
     setGameLocked(true);
   };
@@ -367,7 +398,7 @@ const DFSAI = () => {
           />
           <div className="h-96 overflow-y-auto">
             <table className="min-w-full">
-            <thead className="bg-gray-50">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="p-2 text-left">Name</th>
                   <th className="p-2 text-left">POS</th>
