@@ -99,8 +99,75 @@ const DFSAI = () => {
     setGameLocked(true);
     generateAiTeams();
   };
+const generateAiTeams = () => {
+  if (availablePlayers.length === 0) {
+    setError('No player data available.');
+    return;
+  }
 
-  // ... rest of AI team generation logic stays the same ...
+  const selectPlayersForStrategy = (strategy, players) => {
+    // Helper function to filter players by position
+    const getPlayersByPosition = (pos, count) => {
+      return players
+        .filter(p => p.POS?.includes(pos))
+        .sort((a, b) => {
+          switch(strategy) {
+            case 'venueAnalytics':
+              return (b.ParkFactor || 0) - (a.ParkFactor || 0);
+            case 'advancedStats':
+              return (b.points || 0) - (a.points || 0);
+            case 'powerUpside':
+              return (b.HR || 0) - (a.HR || 0);
+            case 'strikeoutHeavy':
+              return (b.K || 0) - (a.K || 0);
+            case 'random':
+              return Math.random() - 0.5;
+            default:
+              return (b.points || 0) - (a.points || 0);
+          }
+        })
+        .slice(0, count);
+    };
+
+    // Standard roster construction
+    const roster = [
+      ...getPlayersByPosition('P', 2),  // 2 Pitchers
+      ...getPlayersByPosition('C', 1),  // 1 Catcher
+      ...getPlayersByPosition('1B', 1), // 1 First Baseman
+      ...getPlayersByPosition('2B', 1), // 1 Second Baseman
+      ...getPlayersByPosition('3B', 1), // 1 Third Baseman
+      ...getPlayersByPosition('SS', 1), // 1 Shortstop
+      ...getPlayersByPosition('OF', 2)  // 2 Outfielders
+    ];
+
+    return roster;
+  };
+
+  let teams = aiPersonalities.map(personality => {
+    const selectedPlayers = selectPlayersForStrategy(personality.strategy, [...availablePlayers]);
+    const totalPoints = selectedPlayers.reduce((sum, player) => sum + (player.points || 0), 0);
+    
+    // Apply difficulty modifier
+    let adjustedPoints = totalPoints;
+    if (difficulty === 'hard') {
+      adjustedPoints *= 1.1;  // 10% increase for hard mode
+    } else if (difficulty === 'easy') {
+      adjustedPoints *= 0.9;  // 10% decrease for easy mode
+    }
+
+    return {
+      name: personality.name,
+      strategy: personality.strategy,
+      score: adjustedPoints,
+      roster: selectedPlayers
+    };
+  });
+
+  // Sort teams by score
+  teams.sort((a, b) => b.score - a.score);
+  
+  setAiTeams(teams);
+};
 
   return (
     <div className="space-y-6">
