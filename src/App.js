@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import FantasyCalculator from './FantasyCalculator';
 import LeagueBudgetValuation from './LeagueBudgetValuation';
 import SoloDFS from './SoloDFS';
+import DFSAI from './DFSAI';
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
       <div className="App min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-            Fantasy Baseball Calculator
+            OOTP Fantasy Baseball Mod
           </h1>
           
           <nav className="flex justify-center space-x-6 mb-6">
@@ -39,6 +40,7 @@ function App() {
               <Route path="/" element={<FantasyCalculator />} />
               <Route path="/league-budget" element={<LeagueBudgetValuation />} />
               <Route path="/solo-dfs" element={<SoloDFS />} />
+              <Route path="/dfs-ai" element={<DFSAI />} />
             </Routes>
           </div>
         </div>
