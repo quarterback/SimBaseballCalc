@@ -143,7 +143,9 @@ const DFSAI = () => {
       'RP': 1.3,
       'C': 1.2,
       'SS': 1.15,
-      'OF': 0.9
+      'LF': 0.9,
+      'CF': 0.9, 
+      'RF': 0.9
     }[position] || 1;
 
     const baseSalary = points * 100 * positionMultiplier;
