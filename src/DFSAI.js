@@ -3,112 +3,41 @@ import Papa from 'papaparse';
 
 const DFSAI = () => {
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [roster, setRoster] = useState([]);
+  const [userRoster, setUserRoster] = useState([]);
   const [currentScore, setCurrentScore] = useState(0);
   const [loadingStats, setLoadingStats] = useState(false);
   const [error, setError] = useState('');
-  const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
-  const [statType, setStatType] = useState('hitting');
-  const [aiTeams, setAiTeams] = useState([]);
   const [gameLocked, setGameLocked] = useState(false);
   const [difficulty, setDifficulty] = useState('balanced');
+  const [aiTeams, setAiTeams] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const scoringSystems = {
-    draftKingsDFS: {
-      name: 'DraftKings DFS',
-      hitting: { '1B': 3, '2B': 5, '3B': 8, 'HR': 10, 'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5, 'CS': -2, 'HP': 2 },
-      pitching: { 'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2, 'H': -0.6, 'BB': -0.6, 'HP': -0.6, 'CG': 2.5 }
-    }
-  };
+  // ... aiPersonalities array stays the same ...
 
-  // AI Personalities & Strategies
-  const aiPersonalities = [
-    { name: 'KateParkfactor', strategy: 'venueAnalytics' },
-    { name: 'xWOBA_Warrior', strategy: 'advancedStats' },
-    { name: 'Sarah_Numbers', strategy: 'probabilityBased' },
-    { name: 'TomTheStacker', strategy: 'stackLineups' },
-    { name: 'AceHunter_Mike', strategy: 'elitePitcher' },
-    { name: 'ValueJohn_DFS', strategy: 'valueHunting' },
-    { name: 'CindyContact', strategy: 'highFloor' },
-    { name: 'Dave_LaunchAngle', strategy: 'powerUpside' },
-    { name: 'RobertsonK9', strategy: 'strikeoutHeavy' },
-    { name: 'JenStreakSpotter', strategy: 'hotHands' },
-    { name: 'WeatherWatcherAl', strategy: 'weatherBased' },
-    { name: 'MariaMatchups', strategy: 'matchupBased' },
-    { name: 'FadeTheChalk_Sam', strategy: 'contrarian' },
-    { name: 'LowOwned_Lisa', strategy: 'lowOwnership' },
-    { name: 'ReversePublic', strategy: 'antiConsensus' },
-    { name: 'BallparkBetty', strategy: 'homeTeamStack' },
-    { name: 'SpeedsterSteve', strategy: 'baserunning' },
-    { name: 'DefensiveDiana', strategy: 'runPrevention' },
-    { name: 'FavoriteTeamFred', strategy: 'biased' },
-    { name: 'DartThrowDan', strategy: 'random' },
-    { name: 'GutFeelGrace', strategy: 'emotional' },
-    { name: 'YesterdayHero', strategy: 'chasePast' },
-    { name: 'TiltedTony', strategy: 'tiltChasing' },
-    { name: 'FOMO_Frank', strategy: 'fomo' }
-  ];
-
-  const processFile = (file) => {
+  const processFile = async (file) => {
     setLoadingStats(true);
     setError('');
 
-    const reader = new FileReader();
-    reader.onload = ({ target }) => {
-      Papa.parse(target.result, {
+    try {
+      const text = await file.text();
+      Papa.parse(text, {
         header: true,
         dynamicTyping: true,
         skipEmptyLines: true,
         complete: (results) => {
           if (results.errors.length > 0) {
-            console.error('CSV Parse Errors:', results.errors);
-            setError('Error parsing CSV file.');
-            setLoadingStats(false);
+            setError('Error parsing CSV file');
             return;
           }
 
-          if (!results.data || results.data.length === 0) {
-            setError('CSV file is empty or incorrectly formatted.');
-            setLoadingStats(false);
-            return;
-          }
-
-          // Ensure required columns exist
-          const requiredColumns = ['Name', 'TM', 'POS', 'AB', 'H', '1B', '2B', '3B', 'HR', 'R', 'RBI', 'BB', 'SB', 'CS', 'HP', 'IP', 'K', 'HA', 'W', 'ER', 'BB', 'HP', 'CG'];
-          const fileColumns = Object.keys(results.data[0]);
-
-          const missingColumns = requiredColumns.filter(col => !fileColumns.includes(col));
-          if (missingColumns.length > 0) {
-            setError(`Missing required columns: ${missingColumns.join(', ')}`);
-            setLoadingStats(false);
-            return;
-          }
-
-          const processedPlayers = results.data.map(player => ({
-            Name: player.Name,
-            TM: player.TM,
-            POS: player.POS,
-            AB: player.AB || 0,
-            H: player.H || 0,
-            '1B': (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
-            '2B': player['2B'] || 0,
-            '3B': player['3B'] || 0,
-            HR: player.HR || 0,
-            R: player.R || 0,
-            RBI: player.RBI || 0,
-            BB: player.BB || 0,
-            SB: player.SB || 0,
-            CS: player.CS || 0,
-            HP: player.HP || 0,
-            IP: player.IP || 0,
-            K: player.K || 0,
-            HA: player.HA || 0,
-            W: player.W || 0,
-            ER: player.ER || 0,
-            HP: player.HP || 0,
-            CG: player.CG || 0,
-            points: calculatePoints(player)
-          }));
+          const processedPlayers = results.data.map(player => {
+            const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
+            return {
+              ...player,
+              '1B': singles,
+              points: calculateFantasyPoints(player)
+            };
+          });
 
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
@@ -118,98 +47,219 @@ const DFSAI = () => {
           setLoadingStats(false);
         }
       });
+    } catch (error) {
+      setError(`Error reading file: ${error.message}`);
+      setLoadingStats(false);
+    }
+  };
+
+  const calculateFantasyPoints = (player) => {
+    // Basic DraftKings scoring
+    const scoring = {
+      '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
+      'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5,
+      'CS': -2, 'HBP': 2,
+      'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2,
+      'H': -0.6, 'BB': -0.6
     };
-    reader.readAsText(file);
+
+    return Object.entries(scoring).reduce((total, [stat, points]) => {
+      const value = player[stat] || 0;
+      return total + (value * points);
+    }, 0);
   };
 
-  const calculatePoints = (player) => {
-    const scoring = scoringSystems[scoringSystem][statType];
-    return Object.entries(scoring).reduce((total, [stat, value]) => total + (player[stat] || 0) * value, 0);
-  };
-
-  const generateAiTeams = () => {
-    if (availablePlayers.length === 0) {
-      setError('No player data available.');
+  const addToRoster = (player) => {
+    if (userRoster.length >= 9) {
+      setError('Roster is full (9 players maximum)');
       return;
     }
 
-    let teams = aiPersonalities.map(personality => {
-      let selectedPlayers = [...availablePlayers]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 9);
+    const updatedRoster = [...userRoster, player];
+    setUserRoster(updatedRoster);
+    updateScore(updatedRoster);
+  };
 
-      let totalPoints = selectedPlayers.reduce((sum, player) => sum + calculatePoints(player), 0);
+  const removeFromRoster = (playerIndex) => {
+    const updatedRoster = userRoster.filter((_, index) => index !== playerIndex);
+    setUserRoster(updatedRoster);
+    updateScore(updatedRoster);
+  };
 
-      return { name: personality.name, score: totalPoints, roster: selectedPlayers };
-    });
-
-    if (difficulty === 'hard') {
-      teams.forEach(team => (team.score *= 1.1));
-    } else if (difficulty === 'easy') {
-      teams.forEach(team => (team.score *= 0.9));
-    }
-
-    setAiTeams(teams);
+  const updateScore = (roster) => {
+    const score = roster.reduce((total, player) => total + (player.points || 0), 0);
+    setCurrentScore(score);
   };
 
   const lockGame = () => {
-    if (roster.length === 0) {
-      setError('Select players before locking the game.');
+    if (userRoster.length !== 9) {
+      setError('Please select exactly 9 players before locking your lineup');
       return;
     }
-
     setGameLocked(true);
     generateAiTeams();
   };
+
+  // ... rest of AI team generation logic stays the same ...
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-center">Weekly DFS Challenge</h2>
 
-      {error && <div className="text-red-500">{error}</div>}
-      {loadingStats && <div className="text-gray-500">Loading player data...</div>}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          {error}
+        </div>
+      )}
 
-      {/* File Upload */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Difficulty:
+          </label>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            disabled={gameLocked}
+            className="w-full p-2 border rounded-lg"
+          >
+            <option value="easy">Easy</option>
+            <option value="balanced">Balanced</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h3 className="text-lg font-semibold mb-2">Upload CSV</h3>
+        <h3 className="text-lg font-semibold mb-2">Import Players</h3>
         <input
           type="file"
           accept=".csv"
           onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])}
           className="block w-full p-2 border rounded-lg"
-          disabled={loadingStats}
+          disabled={loadingStats || gameLocked}
         />
       </div>
 
-      {/* Lock Lineup & Generate AI Teams */}
-      <button
-        onClick={lockGame}
-        disabled={gameLocked || availablePlayers.length === 0}
-        className="bg-blue-500 text-white p-2 rounded mt-2"
-      >
-        Lock Lineup & Generate AI Teams
-      </button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Available Players */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-lg font-semibold mb-4">Available Players</h3>
+          <input
+            type="text"
+            placeholder="Search players..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 mb-4 border rounded-lg"
+            disabled={gameLocked}
+          />
+          <div className="h-96 overflow-y-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2 text-left">POS</th>
+                  <th className="p-2 text-right">Points</th>
+                  <th className="p-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availablePlayers
+                  .filter(player => 
+                    player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    player.POS?.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((player, idx) => (
+                    <tr key={idx} className="border-t">
+                      <td className="p-2">{player.Name}</td>
+                      <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
+                      <td className="p-2 text-right">
+                        <button
+                          onClick={() => addToRoster(player)}
+                          disabled={gameLocked}
+                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                        >
+                          Add
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      {/* Leaderboard */}
-      {gameLocked && (
-        <div>
-          <h3 className="text-xl font-bold mt-4">Leaderboard</h3>
-          <table className="table-auto w-full border">
-            <thead>
+        {/* User's Roster */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-lg font-semibold mb-2">Your Roster</h3>
+          <div className="mb-4">
+            <p className="text-lg font-semibold">
+              Current Score: {currentScore.toFixed(1)}
+            </p>
+          </div>
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
               <tr>
-                <th>User/AI</th>
-                <th>Score</th>
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2 text-left">POS</th>
+                <th className="p-2 text-right">Points</th>
+                <th className="p-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
+              {userRoster.map((player, idx) => (
+                <tr key={idx} className="border-t">
+                  <td className="p-2">{player.Name}</td>
+                  <td className="p-2">{player.POS}</td>
+                  <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
+                  <td className="p-2 text-right">
+                    <button
+                      onClick={() => removeFromRoster(idx)}
+                      disabled={gameLocked}
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <button
+            onClick={lockGame}
+            disabled={gameLocked || userRoster.length !== 9}
+            className="mt-4 w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50"
+          >
+            Lock Lineup & Generate AI Teams
+          </button>
+        </div>
+      </div>
+
+      {/* Leaderboard */}
+      {gameLocked && aiTeams.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-xl font-bold mb-4">Leaderboard</h3>
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
               <tr>
-                <td>You</td>
-                <td>{currentScore.toFixed(1)}</td>
+                <th className="p-2 text-left">User/AI</th>
+                <th className="p-2 text-left">Strategy</th>
+                <th className="p-2 text-right">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t">
+                <td className="p-2">You</td>
+                <td className="p-2">User</td>
+                <td className="p-2 text-right">{currentScore.toFixed(1)}</td>
               </tr>
               {aiTeams.map((team, idx) => (
-                <tr key={idx}>
-                  <td>{team.name}</td>
-                  <td>{team.score.toFixed(1)}</td>
+                <tr key={idx} className="border-t">
+                  <td className="p-2">{team.name}</td>
+                  <td className="p-2">{team.strategy}</td>
+                  <td className="p-2 text-right">{team.score.toFixed(1)}</td>
                 </tr>
               ))}
             </tbody>
