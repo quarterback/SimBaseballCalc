@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Papa from 'papaparse';
 
 const DFSAI = () => {
-  const [roster, setRoster] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [personalBests, setPersonalBests] = useState({});
   const [currentScore, setCurrentScore] = useState(0);
   const [loadingStats, setLoadingStats] = useState(false);
   const [error, setError] = useState('');
@@ -39,7 +36,7 @@ const DFSAI = () => {
 
   const fetchCsvData = () => {
     if (!csvUrl) {
-      setError('Please enter a CSV URL');
+      setError('Please enter a valid CSV URL.');
       return;
     }
 
@@ -49,7 +46,7 @@ const DFSAI = () => {
     fetch(csvUrl)
       .then(response => {
         if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`);
+          throw new Error(`Failed to fetch CSV: ${response.statusText}`);
         }
         return response.text();
       })
@@ -114,31 +111,35 @@ const DFSAI = () => {
       {error && <div className="text-red-500">{error}</div>}
       {loadingStats && <div className="text-gray-500">Loading player data...</div>}
 
-      {/* 🔹 CSV Input */}
-      <div className="flex space-x-4 mb-4">
+      {/* CSV Input */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 className="text-lg font-semibold mb-2">Import Players from URL</h3>
         <input
           type="text"
-          placeholder="Enter CSV URL"
+          placeholder="Paste CSV URL here..."
           value={csvUrl}
           onChange={(e) => setCsvUrl(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="block w-full p-2 border rounded-lg"
         />
-        <button onClick={fetchCsvData} className="bg-green-500 text-white p-2 rounded">
+        <button onClick={fetchCsvData} className="bg-green-500 text-white p-2 rounded mt-2">
           Load Players
         </button>
       </div>
 
+      {/* Difficulty Selection */}
       <label className="block mb-2">Select Difficulty:</label>
-      <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={gameLocked}>
+      <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={gameLocked} className="p-2 border rounded">
         <option value="easy">Easy</option>
         <option value="balanced">Balanced</option>
         <option value="hard">Hard</option>
       </select>
 
-      <button onClick={lockGame} disabled={gameLocked || availablePlayers.length === 0} className="bg-blue-500 text-white p-2 rounded">
+      {/* Lock Lineup & Generate AI Teams */}
+      <button onClick={lockGame} disabled={gameLocked || availablePlayers.length === 0} className="bg-blue-500 text-white p-2 rounded mt-2">
         Lock Lineup & Generate AI Teams
       </button>
 
+      {/* Leaderboard */}
       {gameLocked && (
         <div>
           <h3 className="text-xl font-bold mt-4">Leaderboard</h3>
