@@ -21,13 +21,32 @@ const DFSAI = () => {
     }
   };
 
+  // AI Personalities & Strategies
   const aiPersonalities = [
     { name: 'KateParkfactor', strategy: 'venueAnalytics' },
     { name: 'xWOBA_Warrior', strategy: 'advancedStats' },
     { name: 'Sarah_Numbers', strategy: 'probabilityBased' },
     { name: 'TomTheStacker', strategy: 'stackLineups' },
     { name: 'AceHunter_Mike', strategy: 'elitePitcher' },
-    { name: 'ValueJohn_DFS', strategy: 'valueHunting' }
+    { name: 'ValueJohn_DFS', strategy: 'valueHunting' },
+    { name: 'CindyContact', strategy: 'highFloor' },
+    { name: 'Dave_LaunchAngle', strategy: 'powerUpside' },
+    { name: 'RobertsonK9', strategy: 'strikeoutHeavy' },
+    { name: 'JenStreakSpotter', strategy: 'hotHands' },
+    { name: 'WeatherWatcherAl', strategy: 'weatherBased' },
+    { name: 'MariaMatchups', strategy: 'matchupBased' },
+    { name: 'FadeTheChalk_Sam', strategy: 'contrarian' },
+    { name: 'LowOwned_Lisa', strategy: 'lowOwnership' },
+    { name: 'ReversePublic', strategy: 'antiConsensus' },
+    { name: 'BallparkBetty', strategy: 'homeTeamStack' },
+    { name: 'SpeedsterSteve', strategy: 'baserunning' },
+    { name: 'DefensiveDiana', strategy: 'runPrevention' },
+    { name: 'FavoriteTeamFred', strategy: 'biased' },
+    { name: 'DartThrowDan', strategy: 'random' },
+    { name: 'GutFeelGrace', strategy: 'emotional' },
+    { name: 'YesterdayHero', strategy: 'chasePast' },
+    { name: 'TiltedTony', strategy: 'tiltChasing' },
+    { name: 'FOMO_Frank', strategy: 'fomo' }
   ];
 
   const processFile = (file) => {
