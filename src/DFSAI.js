@@ -29,7 +29,9 @@ const DFSAI = () => {
     '2B': { min: 1, max: 1 },
     '3B': { min: 1, max: 1 },
     'SS': { min: 1, max: 1 },
-    'OF': { min: 2, max: 3 },
+    'LF': { min: 1, max: 1 },
+    'CF': { min: 1, max: 1 },
+    'RF': { min: 1, max: 1 },
     'UTIL': { min: 0, max: 1 }
   };
 
