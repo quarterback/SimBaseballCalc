@@ -33,6 +33,12 @@ function App() {
             >
               Solo DFS
             </Link>
+            <Link 
+              to="/dfs-ai" 
+              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              DFS Challenge
+            </Link>      
           </nav>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
