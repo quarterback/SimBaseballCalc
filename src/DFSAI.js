@@ -34,6 +34,34 @@ const DFSAI = () => {
     { name: 'BoomBustBob', strategy: 'hotStreaks' }
   ];
 
+  // Parse uploaded CSV file
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setLoadingStats(true);
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = ({ target }) => {
+      Papa.parse(target.result, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: results => {
+          if (results.errors.length > 0) {
+            setError("Error parsing CSV file.");
+          } else {
+            setAvailablePlayers(results.data);
+          }
+          setLoadingStats(false);
+        }
+      });
+    };
+    reader.readAsText(file);
+  };
+
+  // Fetch CSV from URL
   const fetchCsvData = () => {
     if (!csvUrl) {
       setError('Please enter a valid CSV URL.');
@@ -58,10 +86,9 @@ const DFSAI = () => {
           complete: results => {
             if (results.errors.length > 0) {
               setError("Error parsing CSV file.");
-              setLoadingStats(false);
-              return;
+            } else {
+              setAvailablePlayers(results.data);
             }
-            setAvailablePlayers(results.data);
             setLoadingStats(false);
           }
         });
@@ -111,7 +138,18 @@ const DFSAI = () => {
       {error && <div className="text-red-500">{error}</div>}
       {loadingStats && <div className="text-gray-500">Loading player data...</div>}
 
-      {/* CSV Input */}
+      {/* CSV File Upload */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 className="text-lg font-semibold mb-2">Upload CSV File</h3>
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFileUpload}
+          className="block w-full p-2 border rounded-lg"
+        />
+      </div>
+
+      {/* CSV URL Input */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h3 className="text-lg font-semibold mb-2">Import Players from URL</h3>
         <input
