@@ -16,7 +16,7 @@ const cityMarketData = {
     "Billings": { "2025": 3, "1980": 2, "1950": 1 },
 };
 
-const MarketSizeCalculator = () => {
+const MarketCalc = () => {
     const [city, setCity] = useState('');
     const [era, setEra] = useState('2025');
     const [marketSize, setMarketSize] = useState(null);
@@ -61,4 +61,4 @@ const MarketSizeCalculator = () => {
     );
 };
 
-export default MarketSizeCalculator;
+export default MarketCalc;
