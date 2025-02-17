@@ -3,7 +3,6 @@ import Papa from 'papaparse';
 
 const DFSAI = () => {
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [roster, setRoster] = useState([]);
   const [currentScore, setCurrentScore] = useState(0);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -21,6 +20,15 @@ const DFSAI = () => {
       pitching: { 'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2, 'H': -0.6, 'BB': -0.6, 'HP': -0.6, 'CG': 2.5 }
     }
   };
+
+  const aiPersonalities = [
+    { name: 'KateParkfactor', strategy: 'venueAnalytics' },
+    { name: 'xWOBA_Warrior', strategy: 'advancedStats' },
+    { name: 'Sarah_Numbers', strategy: 'probabilityBased' },
+    { name: 'TomTheStacker', strategy: 'stackLineups' },
+    { name: 'AceHunter_Mike', strategy: 'elitePitcher' },
+    { name: 'ValueJohn_DFS', strategy: 'valueHunting' }
+  ];
 
   const processFile = (file) => {
     setLoadingStats(true);
@@ -42,7 +50,7 @@ const DFSAI = () => {
           const processedPlayers = results.data.map(player => ({
             ...player,
             '1B': player.H - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
-            points: 0
+            points: calculatePoints(player)
           }));
 
           setAvailablePlayers(processedPlayers);
@@ -62,29 +70,39 @@ const DFSAI = () => {
     return Object.entries(scoring).reduce((total, [stat, value]) => total + (player[stat] || 0) * value, 0);
   };
 
-  const addToRoster = (player) => {
-    if (roster.length >= 9) {
-      setError('Roster is full (9 players maximum)');
+  const generateAiTeams = () => {
+    if (availablePlayers.length === 0) {
+      setError('No player data available.');
       return;
     }
 
-    const updatedRoster = [...roster, {
-      ...player,
-      points: calculatePoints(player)
-    }];
-    setRoster(updatedRoster);
-    updateScore(updatedRoster);
+    let teams = aiPersonalities.map(personality => {
+      let selectedPlayers = [...availablePlayers]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 9);
+
+      let totalPoints = selectedPlayers.reduce((sum, player) => sum + calculatePoints(player), 0);
+
+      return { name: personality.name, score: totalPoints, roster: selectedPlayers };
+    });
+
+    if (difficulty === 'hard') {
+      teams.forEach(team => (team.score *= 1.1));
+    } else if (difficulty === 'easy') {
+      teams.forEach(team => (team.score *= 0.9));
+    }
+
+    setAiTeams(teams);
   };
 
-  const removeFromRoster = (playerIndex) => {
-    const updatedRoster = roster.filter((_, index) => index !== playerIndex);
-    setRoster(updatedRoster);
-    updateScore(updatedRoster);
-  };
+  const lockGame = () => {
+    if (roster.length === 0) {
+      setError('Select players before locking the game.');
+      return;
+    }
 
-  const updateScore = (currentRoster) => {
-    const score = currentRoster.reduce((total, player) => total + player.points, 0);
-    setCurrentScore(score);
+    setGameLocked(true);
+    generateAiTeams();
   };
 
   return (
@@ -106,77 +124,35 @@ const DFSAI = () => {
         />
       </div>
 
-      {/* Player Selection */}
-      {availablePlayers.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold mb-4">Available Players</h3>
-          <input
-            type="text"
-            placeholder="Search players..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 mb-4 border rounded-lg"
-          />
-          <div className="h-96 overflow-y-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-2 text-left">Name</th>
-                  <th className="p-2 text-left">POS</th>
-                  <th className="p-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availablePlayers
-                  .filter(player => player.Name.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((player, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">{player.Name}</td>
-                      <td className="p-2">{player.POS}</td>
-                      <td className="p-2 text-right">
-                        <button
-                          onClick={() => addToRoster(player)}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                          Add
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* Lock Lineup & Generate AI Teams */}
+      <button
+        onClick={lockGame}
+        disabled={gameLocked || availablePlayers.length === 0}
+        className="bg-blue-500 text-white p-2 rounded mt-2"
+      >
+        Lock Lineup & Generate AI Teams
+      </button>
 
-      {/* Current Roster */}
-      {roster.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4 mt-4">
-          <h3 className="text-lg font-semibold mb-2">Your Roster</h3>
-          <p className="text-lg font-semibold">Current Score: {currentScore.toFixed(1)}</p>
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
+      {/* Leaderboard */}
+      {gameLocked && (
+        <div>
+          <h3 className="text-xl font-bold mt-4">Leaderboard</h3>
+          <table className="table-auto w-full border">
+            <thead>
               <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">POS</th>
-                <th className="p-2 text-right">Points</th>
-                <th className="p-2 text-right">Action</th>
+                <th>User/AI</th>
+                <th>Score</th>
               </tr>
             </thead>
             <tbody>
-              {roster.map((player, idx) => (
-                <tr key={idx} className="border-t">
-                  <td className="p-2">{player.Name}</td>
-                  <td className="p-2">{player.POS}</td>
-                  <td className="p-2 text-right">{player.points.toFixed(1)}</td>
-                  <td className="p-2 text-right">
-                    <button
-                      onClick={() => removeFromRoster(idx)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Remove
-                    </button>
-                  </td>
+              <tr>
+                <td>You</td>
+                <td>{currentScore.toFixed(1)}</td>
+              </tr>
+              {aiTeams.map((team, idx) => (
+                <tr key={idx}>
+                  <td>{team.name}</td>
+                  <td>{team.score.toFixed(1)}</td>
                 </tr>
               ))}
             </tbody>
