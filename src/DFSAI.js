@@ -42,14 +42,52 @@ const DFSAI = () => {
         skipEmptyLines: true,
         complete: (results) => {
           if (results.errors.length > 0) {
+            console.error('CSV Parse Errors:', results.errors);
             setError('Error parsing CSV file.');
             setLoadingStats(false);
             return;
           }
 
+          if (!results.data || results.data.length === 0) {
+            setError('CSV file is empty or incorrectly formatted.');
+            setLoadingStats(false);
+            return;
+          }
+
+          // Ensure required columns exist
+          const requiredColumns = ['Name', 'TM', 'POS', 'AB', 'H', '1B', '2B', '3B', 'HR', 'R', 'RBI', 'BB', 'SB', 'CS', 'HP', 'IP', 'K', 'HA', 'W', 'ER', 'BB', 'HP', 'CG'];
+          const fileColumns = Object.keys(results.data[0]);
+
+          const missingColumns = requiredColumns.filter(col => !fileColumns.includes(col));
+          if (missingColumns.length > 0) {
+            setError(`Missing required columns: ${missingColumns.join(', ')}`);
+            setLoadingStats(false);
+            return;
+          }
+
           const processedPlayers = results.data.map(player => ({
-            ...player,
-            '1B': player.H - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
+            Name: player.Name,
+            TM: player.TM,
+            POS: player.POS,
+            AB: player.AB || 0,
+            H: player.H || 0,
+            '1B': (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0)),
+            '2B': player['2B'] || 0,
+            '3B': player['3B'] || 0,
+            HR: player.HR || 0,
+            R: player.R || 0,
+            RBI: player.RBI || 0,
+            BB: player.BB || 0,
+            SB: player.SB || 0,
+            CS: player.CS || 0,
+            HP: player.HP || 0,
+            IP: player.IP || 0,
+            K: player.K || 0,
+            HA: player.HA || 0,
+            W: player.W || 0,
+            ER: player.ER || 0,
+            HP: player.HP || 0,
+            CG: player.CG || 0,
             points: calculatePoints(player)
           }));
 
