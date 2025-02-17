@@ -113,153 +113,117 @@ const generateAiTeams = () => {
   }
 
   const SALARY_CAP = 50000;
-  const MIN_SALARY = 3000; // Minimum player salary
-  
-  // Position requirements for all teams
+  const MIN_SALARY = 3000;
   const ROSTER_REQUIREMENTS = {
-    'P': 2,    // 2 Pitchers
-    'C': 1,    // 1 Catcher
-    '1B': 1,   // 1 First Baseman
-    '2B': 1,   // 1 Second Baseman
-    '3B': 1,   // 1 Third Baseman
-    'SS': 1,   // 1 Shortstop
-    'OF': 2    // 2 Outfielders
+    'P': 2,
+    'C': 1,
+    '1B': 1,
+    '2B': 1,
+    '3B': 1,
+    'SS': 1,
+    'OF': 2
   };
 
-  // Generate player salaries if they don't exist
-  const playersWithSalaries = availablePlayers.map(player => {
-    if (!player.salary) {
-      // Base salary on recent performance and position scarcity
-      let baseSalary = (player.points || 0) * 100;
-      
-      // Position premium
-      const positionMultiplier = {
-        'P': 1.4,   // Premium for pitchers
-        'C': 1.2,   // Premium for scarce positions
-        'SS': 1.15,
-        'OF': 0.9   // Discount for abundant positions
-      };
+  // First, generate complete player pool with salaries and values
+  const enhancedPlayerPool = availablePlayers.map(player => {
+    // Generate salary based on performance and position
+    const positionMultiplier = {
+      'P': 1.4,
+      'C': 1.2,
+      'SS': 1.15,
+      'OF': 0.9
+    }[player.POS] || 1;
 
-      // Apply position multiplier
-      const multiplier = positionMultiplier[player.POS] || 1;
-      baseSalary *= multiplier;
+    // Base salary on points with position adjustment
+    const baseSalary = Math.max(
+      MIN_SALARY,
+      Math.round(((player.points || 0) * 100 * positionMultiplier) * (0.8 + Math.random() * 0.4))
+    );
 
-      // Add some randomness (±20%)
-      baseSalary *= (0.8 + Math.random() * 0.4);
-
-      // Ensure minimum salary
-      baseSalary = Math.max(MIN_SALARY, baseSalary);
-
-      return { ...player, salary: Math.round(baseSalary) };
-    }
-    return player;
+    return {
+      ...player,
+      salary: baseSalary
+    };
   });
 
-  const generateRandomStrategy = () => {
-    return {
-      powerWeight: Math.random(),
-      avgWeight: Math.random(),
-      speedWeight: Math.random(),
-      kWeight: Math.random(),
-      recentFormWeight: Math.random(),
+  const selectTeamPlayers = () => {
+    // Generate unique strategy for this team
+    const strategy = {
+      powerFocus: Math.random(),
+      contactFocus: Math.random(),
+      pitchingFocus: Math.random(),
       stackingPreference: Math.random() > 0.7,
-      riskTolerance: Math.random(),
-      valueHunting: Math.random(), // New: preference for value picks
-      starHunting: Math.random()   // New: preference for expensive stars
+      valueHunting: Math.random() > 0.5,
+      riskTolerance: Math.random()
     };
-  };
 
-  const selectPlayersWithStrategy = (strategy) => {
     let roster = [];
-    let totalSalary = 0;
-    let availablePlayersCopy = [...playersWithSalaries];
+    let remainingSalary = SALARY_CAP;
+    let availablePlayers = [...enhancedPlayerPool];
     let selectedTeams = new Set();
 
-    const getPlayerValue = (player) => {
-      let value = 0;
-      
-      // Performance value
-      value += (player.HR || 0) * strategy.powerWeight * (0.8 + Math.random() * 0.4);
-      value += (player.AVG || 0) * strategy.avgWeight * (0.8 + Math.random() * 0.4);
-      value += (player.SB || 0) * strategy.speedWeight * (0.8 + Math.random() * 0.4);
-      value += (player.K || 0) * strategy.kWeight * (0.8 + Math.random() * 0.4);
+    const evaluatePlayer = (player) => {
+      let value = player.points || 0;
 
-      // Value hunting: points per salary dollar
-      if (strategy.valueHunting > 0.5) {
-        value *= (player.points || 0) / (player.salary || MIN_SALARY);
+      // Apply strategy weights
+      if (player.POS?.includes('P')) {
+        value *= (1 + strategy.pitchingFocus);
+      } else {
+        value *= (1 + (player.HR || 0) * strategy.powerFocus);
+        value *= (1 + (player.AVG || 0) * strategy.contactFocus);
       }
 
-      // Star hunting: preference for expensive players
-      if (strategy.starHunting > 0.5) {
-        value *= (player.salary || MIN_SALARY) / 10000;
+      // Value hunting modifier
+      if (strategy.valueHunting) {
+        value = value / player.salary;
       }
 
-      // Stacking bonus
+      // Team stacking bonus
       if (strategy.stackingPreference && selectedTeams.has(player.Team)) {
         value *= 1.2;
       }
 
-      // Risk adjustment
-      if (strategy.riskTolerance > 0.5) {
-        value *= (0.8 + Math.random() * 0.4);
-      }
+      // Add randomness based on risk tolerance
+      value *= (1 - strategy.riskTolerance/2 + Math.random() * strategy.riskTolerance);
 
       return value;
     };
 
-    // First pass: select high-priority positions (P, C, SS)
-    const priorityPositions = ['P', 'C', 'SS'];
-    for (const pos of priorityPositions) {
-      const count = ROSTER_REQUIREMENTS[pos];
-      const positionPlayers = availablePlayersCopy.filter(p => p.POS?.includes(pos));
-      
-      positionPlayers.sort((a, b) => getPlayerValue(b) - getPlayerValue(a));
-      
-      for (let i = 0; i < count; i++) {
-        if (positionPlayers[i] && totalSalary + positionPlayers[i].salary <= SALARY_CAP) {
-          roster.push(positionPlayers[i]);
-          totalSalary += positionPlayers[i].salary;
-          selectedTeams.add(positionPlayers[i].Team);
-          availablePlayersCopy = availablePlayersCopy.filter(p => p !== positionPlayers[i]);
-        }
-      }
-    }
+    // Fill each position while respecting salary cap
+    for (const [pos, count] of Object.entries(ROSTER_REQUIREMENTS)) {
+      const positionPlayers = availablePlayers
+        .filter(p => p.POS?.includes(pos))
+        .filter(p => p.salary <= remainingSalary)
+        .sort((a, b) => evaluatePlayer(b) - evaluatePlayer(a));
 
-    // Second pass: fill remaining positions while respecting salary cap
-    const remainingPositions = Object.entries(ROSTER_REQUIREMENTS)
-      .filter(([pos]) => !priorityPositions.includes(pos));
-
-    for (const [pos, count] of remainingPositions) {
-      const positionPlayers = availablePlayersCopy.filter(p => p.POS?.includes(pos));
-      positionPlayers.sort((a, b) => getPlayerValue(b) - getPlayerValue(a));
-      
-      let filledCount = 0;
-      let playerIndex = 0;
-      
-      while (filledCount < count && playerIndex < positionPlayers.length) {
-        const player = positionPlayers[playerIndex];
-        if (totalSalary + player.salary <= SALARY_CAP) {
+      for (let i = 0; i < count && i < positionPlayers.length; i++) {
+        const player = positionPlayers[i];
+        if (player && player.salary <= remainingSalary) {
           roster.push(player);
-          totalSalary += player.salary;
+          remainingSalary -= player.salary;
           selectedTeams.add(player.Team);
-          filledCount++;
-          availablePlayersCopy = availablePlayersCopy.filter(p => p !== player);
+          availablePlayers = availablePlayers.filter(p => p !== player);
         }
-        playerIndex++;
       }
     }
 
-    return { roster, totalSalary };
+    const totalPoints = roster.reduce((sum, player) => sum + (player.points || 0), 0);
+    const totalSalary = SALARY_CAP - remainingSalary;
+
+    return {
+      roster,
+      totalPoints,
+      totalSalary,
+      remainingSalary
+    };
   };
 
-  // Generate teams with random strategies
+  // Generate AI teams
   let teams = aiPersonalities.map(personality => {
-    const randomStrategy = generateRandomStrategy();
-    const { roster: selectedPlayers, totalSalary } = selectPlayersWithStrategy(randomStrategy);
-    const totalPoints = selectedPlayers.reduce((sum, player) => sum + (player.points || 0), 0);
+    const teamResult = selectTeamPlayers();
     
-    let adjustedPoints = totalPoints * (0.95 + Math.random() * 0.1);
-    
+    // Apply difficulty modifier
+    let adjustedPoints = teamResult.totalPoints;
     if (difficulty === 'hard') {
       adjustedPoints *= 1.1;
     } else if (difficulty === 'easy') {
@@ -268,11 +232,11 @@ const generateAiTeams = () => {
 
     return {
       name: personality.name,
-      strategy: personality.strategy,
+      strategy: personality.strategy, // Keep for display but actual strategy is hidden
       score: adjustedPoints,
-      roster: selectedPlayers,
-      salary: totalSalary,
-      remainingSalary: SALARY_CAP - totalSalary
+      roster: teamResult.roster,
+      salary: teamResult.totalSalary,
+      remainingSalary: teamResult.remainingSalary
     };
   });
 
