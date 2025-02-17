@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
-const SoloDFS = () => {
+const DFSAI = () => {
   const [roster, setRoster] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
