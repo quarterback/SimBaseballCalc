@@ -4,6 +4,7 @@ import FantasyCalculator from './FantasyCalculator';
 import SeasonDFS from './SeasonDFS';
 import SoloDFS from './SoloDFS';
 import DFSAI from './DFSAI';
+import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc'; // ✅ Match your filename exactly
 
 function App() {
@@ -46,6 +47,12 @@ function App() {
             >
               Market Size Calculator
             </Link> 
+           <Link 
+              to="/fan-interest" 
+              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Fan Interest Calc
+            </Link> 
           </nav>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -54,7 +61,8 @@ function App() {
               <Route path="/season-dfs" element={<SeasonDFS />} />
               <Route path="/solo-dfs" element={<SoloDFS />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
-              <Route path="/market-calc" element={<MarketCalc />} /> 
+              <Route path="/market-calc" element={<MarketCalc />} />
+              <Route path="/fan-interest" element={<FanInterestCalc />} />
             </Routes>
           </div>
         </div>
