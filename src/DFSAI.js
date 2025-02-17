@@ -35,23 +35,36 @@ const DFSAI = () => {
     'UTIL': { min: 0, max: 1 }
   };
 
-  // Username generation
-  const generateRandomUser = () => {
+// Random username generation
+const generateRandomUser = () => {
     const prefixes = [
-      'DFS', 'Fantasy', 'Ball', 'Base', 'Diamond', 'Stats', 'Money', 'Pro', 'Grinder', 'Daily',
-      'MLB', 'Pitcher', 'Slugger', 'Hitter', 'Closer', 'Ace', 'Heater', 'Knuckle', 'Curveball', 
-      'LaunchAngle', 'ExitVelo', 'xStats', 'WARlord', 'Sabermetric', 'BigFly', 'Moonshot', 
-      'Roto', 'CashGame', 'Steals', 'OBP', 'OPS', 'Barrels', 'NoHitter', 'PowerBat', 'GPP', 
-      'SpinRate', 'OutfieldCannon', 'DingerDealer', 'WalkOff', 'CyYoung', 'MVP', 'GoldGlove'
+        'DFS', 'Fantasy', 'Ball', 'Base', 'Diamond', 'Stats', 'Money', 'Pro', 'Grinder', 'Daily',
+        'MLB', 'Pitcher', 'Slugger', 'Hitter', 'Closer', 'Ace', 'Heater', 'Knuckle', 'Curveball', 
+        'LaunchAngle', 'ExitVelo', 'xStats', 'WARlord', 'Sabermetric', 'BigFly', 'Moonshot', 
+        'Roto', 'CashGame', 'Steals', 'OBP', 'OPS', 'Barrels', 'NoHitter', 'PowerBat', 'GPP', 
+        'SpinRate', 'OutfieldCannon', 'DingerDealer', 'WalkOff', 'CyYoung', 'MVP', 'GoldGlove'
     ];
 
     const suffixes = [
-      'King', 'Queen', 'Champ', 'Master', 'Guru', 'Wizard', 'Beast', 'Expert', 'Boss', 'Shark', 
-      'Warrior', 'Destroyer', 'Legend', 'Savage', 'Clutch', 'GOAT', 'Cannon', 'Swingman', 'Whiff', 
-      'Slugger', 'Killer', 'Dinger', 'Velocity', 'Cleanup', 'HotStreak', 'Stealer', 'RBI', 'Boomer', 
-      'Splitter', 'Heater', 'Cutter', 'Sinker', 'Slurve', 'Perfecto', 'ClutchHit', 'TripleCrown', 
-      'LaunchPad', 'HOF', 'Fastball', 'OverTheFence', 'WarningTrack', 'Lumberjack'
+        'King', 'Queen', 'Champ', 'Master', 'Guru', 'Wizard', 'Beast', 'Expert', 'Boss', 'Shark', 
+        'Warrior', 'Destroyer', 'Legend', 'Savage', 'Clutch', 'GOAT', 'Cannon', 'Swingman', 'Whiff', 
+        'Slugger', 'Killer', 'Dinger', 'Velocity', 'Cleanup', 'HotStreak', 'Stealer', 'RBI', 'Boomer', 
+        'Splitter', 'Heater', 'Cutter', 'Sinker', 'Slurve', 'Perfecto', 'ClutchHit', 'TripleCrown', 
+        'LaunchPad', 'HOF', 'Fastball', 'OverTheFence', 'WarningTrack', 'Lumberjack'
     ];
+
+    const middleParts = [
+        '42', '27', '99', '360', 'xBA', '95MPH', 'ExitVelo', 'Barrels', 'LaunchAngle', '125Power', 
+        'StealKing', 'WalkRate', 'WhiffRate', 'KRate', 'DoublePlay', 'GoldGlove', 'WAR', 'OBP900', 
+        'OPSplus', 'BABIP', '260ISO', '345wOBA', 'SpinRate4500', 'MoundMaster', 'Fireballer', 'Slugging'
+    ];
+
+    const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
+    const symbols = ['_', '', '.', '-', '#'];
+
+    // Constructing a username with more variation
+    return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${middleParts[Math.floor(Math.random() * middleParts.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}${numbers()}`;
+};
     
     const patterns = [
       () => `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${numbers()}`,
@@ -388,6 +401,29 @@ const DFSAI = () => {
         />
       </div>
 
+          <div className="flex gap-4 mb-4">
+  <input
+    type="text"
+    placeholder="Search players..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full p-2 border rounded-lg"
+    disabled={gameLocked}
+  />
+  <select
+    value={positionFilter}
+    onChange={(e) => setPositionFilter(e.target.value)}
+    className="p-2 border rounded-lg min-w-[100px]"
+    disabled={gameLocked}
+  >
+    {POSITIONS.map(pos => (
+      <option key={pos} value={pos}>
+        {pos}
+      </option>
+    ))}
+  </select>
+</div>
+    
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Available Players */}
         <div className="bg-white rounded-lg shadow p-4">
@@ -412,12 +448,15 @@ const DFSAI = () => {
                 </tr>
               </thead>
               <tbody>
-                {availablePlayers
-                  .filter(player => 
-                    player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    player.POS?.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((player, idx) => (
+{availablePlayers
+  .filter(player => {
+    const matchesSearch = 
+      player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      player.POS?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPosition = positionFilter === 'ALL' || player.POS === positionFilter;
+    return matchesSearch && matchesPosition;
+  })
+  .map((player, idx) => (
                     <tr key={idx} className="border-t">
                       <td className="p-2">{player.Name}</td>
                       <td className="p-2">{player.POS}</td>
