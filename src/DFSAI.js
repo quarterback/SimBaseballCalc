@@ -12,7 +12,14 @@ const DFSAI = () => {
   const [aiTeams, setAiTeams] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ... aiPersonalities array stays the same ...
+  const aiPersonalities = [
+    { name: 'KateParkfactor', strategy: 'venueAnalytics' },
+    { name: 'xWOBA_Warrior', strategy: 'advancedStats' },
+    { name: 'Sarah_Numbers', strategy: 'probabilityBased' },
+    { name: 'TomTheStacker', strategy: 'stackLineups' },
+    { name: 'AceHunter_Mike', strategy: 'elitePitcher' },
+    { name: 'ValueJohn_DFS', strategy: 'valueHunting' }
+  ];
 
   const processFile = async (file) => {
     setLoadingStats(true);
