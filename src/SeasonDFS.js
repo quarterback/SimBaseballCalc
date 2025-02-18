@@ -1,34 +1,6 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 
-const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
-
-const scoringSystems = {
-    draftKingsDFS: {
-        name: 'DraftKings DFS',
-        hitting: { '1B': 3, '2B': 5, '3B': 8, 'HR': 10, 'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5, 'CS': -2, 'HBP': 2 },
-        pitching: { 'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2, 'H': -0.6, 'BB': -0.6, 'CG': 2.5 }
-    },
-    sabermetricMode: {
-        name: "Sabermetric Mode",
-        hitting: { 'AVG': 10, 'OBP': 15, 'SLG': 12, 'WAR': 25, 'BABIP': 5 },
-        pitching: { 'ERA': -5, 'WHIP': -8, 'FIP': -5, 'K/9': 3, 'WAR': 20 }
-    },
-    boomOrBust: {
-        name: "Boom or Bust",
-        hitting: { 'HR': 20, 'K': -5, 'SLG': 8, 'TB': 5 },
-        pitching: { 'K': 10, 'BB': -10, 'HR': -15, 'IP': 2 }
-    }
-};
-
-// **Scoring Calculation**
-const calculateFantasyPoints = (player) => {
-    const scoring = scoringSystems[scoringSystem][player.POS.includes('P') ? 'pitching' : 'hitting'];
-    return Object.entries(scoring).reduce((total, [stat, value]) => {
-        return total + ((player[stat] || 0) * value);
-    }, 0);
-};
-
 const SeasonDFS = () => {
   // Original DFS states
   const [availablePlayers, setAvailablePlayers] = useState([]);
@@ -97,7 +69,7 @@ const SeasonDFS = () => {
     return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}${Math.floor(Math.random() * 999).toString().padStart(2, '0')}`;
   };
 
-  const generateCompetitorPool = (count = 55) => {
+  const generateCompetitorPool = (count = 20) => {
     return Array(count).fill(null).map(() => ({
       name: generateRandomUser(),
       isRegular: false
@@ -105,12 +77,11 @@ const SeasonDFS = () => {
   };
 
   const regularCompetitors = [
-    { name: 'Barberboy53', isRegular: true },
-    { name: 'AlwaysOnTime213', isRegular: true },
-    { name: 'TreechLA', isRegular: true },
-    { name: 'MarioMakinMoves', isRegular: true },
-    { name: 'SatelliteGirl3', isRegular: true },
-    { name: 'EastsideGunn', isRegular: true }
+    { name: 'DailyGrinder', isRegular: true },
+    { name: 'StatShark', isRegular: true },
+    { name: 'BaseballGuru', isRegular: true },
+    { name: 'MoneyMaker', isRegular: true },
+    { name: 'ProPlayer', isRegular: true }
   ];
 
   // Calculate bonuses for the week
@@ -469,14 +440,7 @@ const advanceWeek = () => {
             <option value="hard">Hard</option>
           </select>
         </div>
-              
-// **Scoring System Selector UI**
-<select value={scoringSystem} onChange={(e) => setScoringSystem(e.target.value)} className="w-full p-2 border rounded-lg">
-    {Object.entries(scoringSystems).map(([key, system]) => (
-        <option key={key} value={key}>{system.name}</option>
-    ))}
-</select>;
- 
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Salary Cap: ${SALARY_CAP.toLocaleString()}
