@@ -67,7 +67,7 @@ const generateRandomUser = () => {
     return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${middleParts[Math.floor(Math.random() * middleParts.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}${Math.floor(Math.random() * 999).toString().padStart(2, '0')}`;
 };
 
-const generateCompetitorPool = (count = 20) => {
+const generateCompetitorPool = (count = 50) => {
     return Array(count).fill(null).map(() => ({
         name: generateRandomUser(),
         isRegular: false
@@ -75,11 +75,15 @@ const generateCompetitorPool = (count = 20) => {
 };
 
   const regularCompetitors = [
-    { name: 'DailyGrinder', isRegular: true },
-    { name: 'StatShark', isRegular: true },
-    { name: 'BaseballGuru', isRegular: true },
-    { name: 'MoneyMaker', isRegular: true },
-    { name: 'ProPlayer', isRegular: true }
+    { name: 'PaperboyMario', isRegular: true },
+    { name: 'RamzavailDuo', isRegular: true },
+    { name: 'BostonRed4423', isRegular: true },
+    { name: 'DominoMatteo', isRegular: true },
+    { name: 'BobbyWhite39', isRegular: true },
+    { name: 'BarberIsHere', isRegular: true },
+    { name: 'Generik2U23', isRegular: true },
+    { name: 'TimexTommi', isRegular: true },
+    { name: 'SkyDawg', isRegular: true }
   ];
 
   // File processing and stat calculations
