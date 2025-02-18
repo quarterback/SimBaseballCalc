@@ -327,57 +327,67 @@ const SeasonDFS = () => {
     };
   };
 
-  // Complete lockGame function
-  const lockGame = () => {
+const lockGame = () => {
     if (userRoster.length !== 10) {
-      setError('Must have exactly 10 players (including UTIL) to lock lineup');
-      return;
+        setError('Must have exactly 10 players (including UTIL) to lock lineup');
+        return;
     }
 
     const positionError = validateRoster(userRoster);
     if (positionError) {
-      setError(positionError);
-      return;
+        setError(positionError);
+        return;
     }
 
     // Generate AI teams
     const competitors = [
-      ...regularCompetitors.slice(0, 5),
-      ...generateCompetitorPool(15)
+        ...regularCompetitors.slice(0, 5),
+        ...generateCompetitorPool(15)
     ].sort(() => Math.random() - 0.5).slice(0, 15);
 
     const aiResults = competitors.map(competitor => generateAiTeam(competitor));
-    
+
     // Add user to results
     const allResults = [
-      { name: 'You', score: currentScore, roster: userRoster, salary: currentSalary },
-      ...aiResults
+        { name: 'You', score: currentScore, roster: userRoster, salary: currentSalary },
+        ...aiResults
     ].sort((a, b) => b.score - a.score);
 
     // Find user's rank
     const userRank = allResults.findIndex(result => result.name === 'You') + 1;
 
-    // Update season history
+    // Store weekly results in history
     const weekResult = {
-      week: seasonWeek,
-      score: currentScore,
-      rank: userRank,
-      earnings: calculateWeeklyBonuses(userRank, currentScore)
+        week: seasonWeek,
+        score: currentScore,
+        rank: userRank,
+        earnings: calculateWeeklyBonuses(userRank, currentScore)
     };
 
     setSeasonHistory(prev => [...prev, weekResult]);
-    
-    // Update streaks
+
+    // Update streaks and season points
     setStreaks(prev => ({
-      userStreak: userRank <= 3 ? prev.userStreak + 1 : 0,
-      weeklyRanks: [...prev.weeklyRanks, userRank]
+        userStreak: userRank <= 3 ? prev.userStreak + 1 : 0,
+        weeklyRanks: [...prev.weeklyRanks, userRank]
     }));
 
+    setSeasonPoints(prev => prev + currentScore);
+
+    // Lock current game
     setAiTeams(allResults);
     setWinner(allResults[0]);
     setGameLocked(true);
-    setSeasonWeek(prev => prev + 1);
-  };
+};
+
+// **New function to advance to the next week**
+const advanceWeek = () => {
+    setUserRoster([]);  // Reset user roster
+    setCurrentSalary(0);  // Reset salary cap usage
+    setCurrentScore(0);  // Reset current score
+    setGameLocked(false);  // Unlock game for next week
+    setSeasonWeek(prev => prev + 1);  // Increment season week
+};
 
   return (
     <div className="space-y-6">
@@ -572,6 +582,15 @@ const SeasonDFS = () => {
           </button>
         </div>
       </div>
+
+{gameLocked && (
+    <button
+        onClick={advanceWeek}
+        className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
+    >
+        Advance to Week {seasonWeek + 1}
+    </button>
+)}
 
       {/* Leaderboard */}
       {gameLocked && aiTeams.length > 0 && (
