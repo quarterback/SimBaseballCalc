@@ -1,6 +1,34 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 
+const [scoringSystem, setScoringSystem] = useState('draftKingsDFS');
+
+const scoringSystems = {
+    draftKingsDFS: {
+        name: 'DraftKings DFS',
+        hitting: { '1B': 3, '2B': 5, '3B': 8, 'HR': 10, 'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5, 'CS': -2, 'HBP': 2 },
+        pitching: { 'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2, 'H': -0.6, 'BB': -0.6, 'CG': 2.5 }
+    },
+    sabermetricMode: {
+        name: "Sabermetric Mode",
+        hitting: { 'AVG': 10, 'OBP': 15, 'SLG': 12, 'WAR': 25, 'BABIP': 5 },
+        pitching: { 'ERA': -5, 'WHIP': -8, 'FIP': -5, 'K/9': 3, 'WAR': 20 }
+    },
+    boomOrBust: {
+        name: "Boom or Bust",
+        hitting: { 'HR': 20, 'K': -5, 'SLG': 8, 'TB': 5 },
+        pitching: { 'K': 10, 'BB': -10, 'HR': -15, 'IP': 2 }
+    }
+};
+
+// **Scoring Calculation**
+const calculateFantasyPoints = (player) => {
+    const scoring = scoringSystems[scoringSystem][player.POS.includes('P') ? 'pitching' : 'hitting'];
+    return Object.entries(scoring).reduce((total, [stat, value]) => {
+        return total + ((player[stat] || 0) * value);
+    }, 0);
+};
+
 const SeasonDFS = () => {
   // Original DFS states
   const [availablePlayers, setAvailablePlayers] = useState([]);
@@ -441,7 +469,14 @@ const advanceWeek = () => {
             <option value="hard">Hard</option>
           </select>
         </div>
-
+              
+// **Scoring System Selector UI**
+<select value={scoringSystem} onChange={(e) => setScoringSystem(e.target.value)} className="w-full p-2 border rounded-lg">
+    {Object.entries(scoringSystems).map(([key, system]) => (
+        <option key={key} value={key}>{system.name}</option>
+    ))}
+</select>;
+ 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Salary Cap: ${SALARY_CAP.toLocaleString()}
