@@ -69,7 +69,7 @@ const SeasonDFS = () => {
     return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${symbols[Math.floor(Math.random() * symbols.length)]}${suffixes[Math.floor(Math.random() * suffixes.length)]}${Math.floor(Math.random() * 999).toString().padStart(2, '0')}`;
   };
 
-  const generateCompetitorPool = (count = 20) => {
+  const generateCompetitorPool = (count = 55) => {
     return Array(count).fill(null).map(() => ({
       name: generateRandomUser(),
       isRegular: false
@@ -77,11 +77,12 @@ const SeasonDFS = () => {
   };
 
   const regularCompetitors = [
-    { name: 'DailyGrinder', isRegular: true },
-    { name: 'StatShark', isRegular: true },
-    { name: 'BaseballGuru', isRegular: true },
-    { name: 'MoneyMaker', isRegular: true },
-    { name: 'ProPlayer', isRegular: true }
+    { name: 'Barberboy53', isRegular: true },
+    { name: 'AlwaysOnTime213', isRegular: true },
+    { name: 'TreechLA', isRegular: true },
+    { name: 'MarioMakinMoves', isRegular: true },
+    { name: 'SatelliteGirl3', isRegular: true },
+    { name: 'EastsideGunn', isRegular: true }
   ];
 
   // Calculate bonuses for the week
