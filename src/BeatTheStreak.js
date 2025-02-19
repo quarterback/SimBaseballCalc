@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
@@ -162,7 +161,7 @@ const BeatTheStreak = () => {
 
       {error && <div className="bg-red-100 text-red-700 p-3 rounded">{error}</div>}
 
-      {!gameOver && (
+      {!gameOver ? (
         <>
           <div className="bg-white shadow p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Upload Players CSV</h3>
@@ -211,6 +210,12 @@ const BeatTheStreak = () => {
 
           <button onClick={submitPick} className="bg-green-500 text-white px-4 py-2 rounded mt-4">Submit Pick</button>
         </>
+      ) : (
+        <div className="text-center">
+          <h3 className="text-lg font-bold">Game Over</h3>
+          <p>Total Hits: {totalHits}</p>
+          <button onClick={resetGame} className="bg-blue-500 text-white px-4 py-2 rounded mt-4">Play Again</button>
+        </div>
       )}
     </div>
   );
