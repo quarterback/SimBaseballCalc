@@ -58,39 +58,48 @@ const BeatTheStreak = () => {
     }
   };
 
-  const makePick = (player) => {
-    if (round > MAX_ROUNDS) return;
-    if (eitherOrUsed || selectedPlayers.length < 1) {
-      setSelectedPlayers([player]);
-    } else {
-      setSelectedPlayers(prev => [...prev, player]);
-    }
-  };
+const makePick = (player) => {
+  setError('');
 
-  const submitPick = () => {
-    if (selectedPlayers.length === 0) {
-      setError('You must select at least one player.');
-      return;
+  setSelectedPlayers((prev) => {
+    // Check if player is already selected, remove if so
+    if (prev.includes(player)) {
+      return prev.filter(p => p !== player);
     }
 
-    setError('');
-    let hitsGained = 0;
-
-    if (selectedPlayers.length === 1) {
-      hitsGained = selectedPlayers[0].hits;
-    } else if (selectedPlayers.length === 2) {
-      hitsGained = Math.max(selectedPlayers[0].hits, selectedPlayers[1].hits);
-      setEitherOrUsed(true);
+    // Allow only 1 pick normally, 2 if using Either/Or
+    if (prev.length >= 1 && !eitherOrUsed) {
+      return [...prev, player].slice(-2);
     }
 
-    setTotalHits(prev => prev + hitsGained);
-    setSelectedPlayers([]);
-    setRound(prev => prev + 1);
+    return [player];
+  });
+};
 
-    if (round >= MAX_ROUNDS) {
-      setGameOver(true);
-    }
-  };
+
+const submitPick = () => {
+  if (selectedPlayers.length === 0) {
+    setError('You must select at least one player.');
+    return;
+  }
+  
+  let hitsGained = 0;
+
+  if (selectedPlayers.length === 1) {
+    hitsGained = selectedPlayers[0].hits;
+  } else if (selectedPlayers.length === 2) {
+    hitsGained = Math.max(selectedPlayers[0].hits, selectedPlayers[1].hits);
+    setEitherOrUsed(true);
+  }
+
+  setTotalHits(prev => prev + hitsGained);
+  setSelectedPlayers([]);
+  setRound(prev => prev + 1);
+
+  if (round >= MAX_ROUNDS) {
+    setGameOver(true);
+  }
+};
 
   const resetGame = () => {
     if (totalHits > bestScore) {
@@ -158,7 +167,15 @@ const BeatTheStreak = () => {
                     <td className="p-2 text-right">{player.obp.toFixed(3)}</td>
                     <td className="p-2 text-right">{player.war}</td>
                     <td className="p-2 text-right">
-                      <button onClick={() => makePick(player)} className="px-3 py-1 bg-blue-500 text-white rounded">Pick</button>
+                    <button
+  onClick={() => makePick(player)}
+  className={`px-3 py-1 rounded ${
+    selectedPlayers.includes(player) ? 'bg-red-500' : 'bg-blue-500'
+  } text-white`}
+>
+  {selectedPlayers.includes(player) ? 'Remove' : 'Pick'}
+</button>
+
                     </td>
                   </tr>
                 ))}
