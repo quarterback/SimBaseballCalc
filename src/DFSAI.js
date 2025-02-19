@@ -130,20 +130,91 @@ const generateCompetitorPool = (count = 50) => {
     }
   };
 
-  const calculateFantasyPoints = (player) => {
-    const scoring = {
-      '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
-      'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5,
-      'CS': -2, 'HBP': 2,
-      'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2,
-      'H': -0.6, 'BB': -0.6
-    };
+// Replace the existing calculateFantasyPoints function in DFSAI.js with:
 
-    return Object.entries(scoring).reduce((total, [stat, points]) => {
-      const value = player[stat] || 0;
-      return total + (value * points);
-    }, 0);
+const calculateFantasyPoints = (player) => {
+  const isPitcher = player.POS?.includes('P');
+  
+  // Base scoring system
+  const baseScoring = {
+    // Hitting
+    '1B': 3,
+    '2B': 5,
+    '3B': 8,
+    'HR': 10,
+    'R': 2,
+    'RBI': 2,
+    'BB': 2,
+    'SB': 5,
+    'CS': -2,
+    'HBP': 2,
+    
+    // Pitching
+    'IP': 3,
+    'K': 2,
+    'BB': -2,
+    'H': -1,
+    'ER': -3
   };
+
+  // Calculate base points
+  let points = Object.entries(baseScoring).reduce((total, [stat, value]) => {
+    return total + (player[stat] || 0) * value;
+  }, 0);
+
+  // Add performance bonuses
+  if (isPitcher) {
+    // Dominant pitching performance bonuses
+    if (player.IP >= 9) {
+      if (player.H === 0 && player.BB === 0 && player.HBP === 0) {
+        points += 50;  // Perfect game bonus
+      } else if (player.H === 0) {
+        points += 40;  // No-hitter bonus
+      } else if (player.ER === 0) {
+        points += 25;  // Shutout bonus
+      }
+    } else if (player.IP >= 7 && player.H === 0) {
+      points += 25;  // 7+ no-hit innings
+    }
+
+    // K/9 bonus
+    const kRate = player.K / player.IP;
+    if (kRate >= 2.0) points += 15;
+    else if (kRate >= 1.5) points += 10;
+    else if (kRate >= 1.0) points += 5;
+
+    // WHIP bonus
+    const whip = (player.H + player.BB) / player.IP;
+    if (whip <= 0.5) points += 20;
+    else if (whip <= 0.8) points += 15;
+    else if (whip <= 1.0) points += 10;
+  } else {
+    // Hitting performance bonuses
+    if (player.HR >= 2) {
+      points += (player.HR - 1) * 15;  // Multi-homer bonus
+    }
+
+    if (player.AB >= 3 && player.H >= 3 && player.AB === player.H) {
+      points += 25;  // Perfect day bonus
+    }
+
+    if (player.SB >= 2 || player['3B'] >= 1) {
+      points += 10;  // Speed bonus
+    }
+
+    // ISO bonus (if AB > 0)
+    if (player.AB > 0) {
+      const iso = (player['2B'] + player['3B'] * 2 + player.HR * 3) / player.AB;
+      if (iso >= 0.250) points += 12;
+      else if (iso >= 0.200) points += 8;
+      else if (iso >= 0.150) points += 4;
+    }
+  }
+
+  return points;
+};
+
+// The rest of DFSAI.js remains the same
 
   const generateSalary = (points, position) => {
     const positionMultiplier = {
