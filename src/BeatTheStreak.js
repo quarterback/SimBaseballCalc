@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
 const BeatTheStreak = () => {
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const [selectedPlayers, setSelectedPlayers] = useState({});
   const [round, setRound] = useState(1);
   const [totalHits, setTotalHits] = useState(0);
   const [bestScore, setBestScore] = useState(0);
@@ -16,8 +17,6 @@ const BeatTheStreak = () => {
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
   const playersPerPage = 10;
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc');
 
   const HITS_TARGET = 99;
   const JACKPOT_RANGE = { min: 3000000, max: 7000000 };
@@ -66,35 +65,40 @@ const BeatTheStreak = () => {
     }
   };
 
-  const makePick = (player) => {
+  // ✅ Fixes player selection logic
+  const togglePick = (player) => {
     setError('');
+
     setSelectedPlayers((prev) => {
-      if (prev.some(p => p.id === player.id)) {
-        return prev.filter(p => p.id !== player.id);
+      const updated = { ...prev };
+      if (updated[player.id]) {
+        delete updated[player.id]; // Remove player if already picked
+      } else {
+        if (Object.keys(updated).length < (eitherOrUsed ? 1 : 2)) {
+          updated[player.id] = player;
+        }
       }
-      if (prev.length >= 1 && !eitherOrUsed) {
-        return [...prev, player].slice(-2);
-      }
-      return [player];
+      return updated;
     });
   };
 
   const submitPick = () => {
-    if (selectedPlayers.length === 0) {
+    const pickedPlayers = Object.values(selectedPlayers);
+    if (pickedPlayers.length === 0) {
       setError('You must select at least one player.');
       return;
     }
 
     let hitsGained = 0;
-    if (selectedPlayers.length === 1) {
-      hitsGained = selectedPlayers[0].hits;
-    } else if (selectedPlayers.length === 2) {
-      hitsGained = Math.max(selectedPlayers[0].hits, selectedPlayers[1].hits);
+    if (pickedPlayers.length === 1) {
+      hitsGained = pickedPlayers[0].hits;
+    } else if (pickedPlayers.length === 2) {
+      hitsGained = Math.max(pickedPlayers[0].hits, pickedPlayers[1].hits);
       setEitherOrUsed(true);
     }
 
     setTotalHits(prev => prev + hitsGained);
-    setSelectedPlayers([]);
+    setSelectedPlayers({});
 
     setRound(prev => {
       if (prev + 1 > MAX_ROUNDS) {
@@ -114,20 +118,7 @@ const BeatTheStreak = () => {
     setRound(1);
     setGameOver(false);
     setEitherOrUsed(false);
-    setSelectedPlayers([]);
-  };
-
-  // Sorting Logic
-  const toggleSort = (field) => {
-    const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
-    setSortField(field);
-    setSortOrder(order);
-
-    const sortedPlayers = [...availablePlayers].sort((a, b) => {
-      return order === 'asc' ? a[field] - b[field] : b[field] - a[field];
-    });
-
-    setAvailablePlayers(sortedPlayers);
+    setSelectedPlayers({});
   };
 
   // Pagination Logic
@@ -205,7 +196,12 @@ const BeatTheStreak = () => {
                     <td>{player.obp.toFixed(3)}</td>
                     <td>{player.war}</td>
                     <td>
-                      <button onClick={() => makePick(player)}>Pick</button>
+                      <button
+                        onClick={() => togglePick(player)}
+                        className={`px-3 py-1 rounded ${selectedPlayers[player.id] ? 'bg-red-500' : 'bg-blue-500'} text-white`}
+                      >
+                        {selectedPlayers[player.id] ? 'Remove' : 'Pick'}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -213,7 +209,7 @@ const BeatTheStreak = () => {
             </table>
           </div>
 
-          <button onClick={submitPick}>Submit Pick</button>
+          <button onClick={submitPick} className="bg-green-500 text-white px-4 py-2 rounded mt-4">Submit Pick</button>
         </>
       )}
     </div>
