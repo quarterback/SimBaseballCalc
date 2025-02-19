@@ -76,84 +76,13 @@ const SeasonDFS = () => {
     }));
   };
 
-const regularCompetitors = [
-  { 
-    name: 'NikkiLuvsFrenchies',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.7,
-      contactFocus: 0.4,
-      pitchingFocus: 0.8,
-      riskTolerance: 0.6,
-      valueHunting: true
-    }
-  },
-  { 
-    name: 'MarioTheBarber',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.3,
-      contactFocus: 0.9,
-      pitchingFocus: 0.6,
-      riskTolerance: 0.4,
-      valueHunting: false
-    }
-  },
-  { 
-    name: 'LahdeeenLegend',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.9,
-      contactFocus: 0.3,
-      pitchingFocus: 0.5,
-      riskTolerance: 0.8,
-      valueHunting: true
-    }
-  },
-  { 
-    name: 'BlackGannicus',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.6,
-      contactFocus: 0.6,
-      pitchingFocus: 0.7,
-      riskTolerance: 0.5,
-      valueHunting: true
-    }
-  },
-  { 
-    name: 'xWARlord420',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.8,
-      contactFocus: 0.5,
-      pitchingFocus: 0.4,
-      riskTolerance: 0.7,
-      valueHunting: false
-    }
-  },
-  {
-    name: 'CitizenBall$r',
-    isRegular: true,
-    strategy: {
-      // Highly variable strategy that changes each evaluation
-      powerFocus: () => Math.random() * 2,  // Can go up to 200% power focus
-      contactFocus: () => Math.random() * 2,
-      pitchingFocus: () => Math.random() * 2,
-      riskTolerance: 1.0,  // Maximum risk tolerance
-      valueHunting: () => Math.random() > 0.5,  // Randomly decides whether to value hunt
-      // Additional chaos factors
-      stackingPreference: () => Math.random() > 0.3,  // 70% chance to stack positions
-      maxSalaryPerPlayer: () => 3000 + Math.random() * 47000,  // Highly variable salary limits
-      favorPosition: () => {
-        const positions = ['SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'OF'];
-        return positions[Math.floor(Math.random() * positions.length)];
-      },
-      // Can make extremely aggressive moves
-      willingToOverpay: () => Math.random() > 0.7  // 30% chance to ignore value considerations
-    }
-  }
-];
+  const regularCompetitors = [
+    { name: 'DailyGrinder', isRegular: true },
+    { name: 'StatShark', isRegular: true },
+    { name: 'BaseballGuru', isRegular: true },
+    { name: 'MoneyMaker', isRegular: true },
+    { name: 'ProPlayer', isRegular: true }
+  ];
 
   // Calculate bonuses for the week
   const calculateWeeklyBonuses = (rank, score) => {
@@ -318,40 +247,15 @@ const regularCompetitors = [
     setCurrentScore(score);
   };
 
-const evaluatePlayer = (player) => {
-  let value = player.points;
-  
-  // Handle function-based strategy values
-  const getStrategyValue = (strategyProp) => {
-    return typeof strategyProp === 'function' ? strategyProp() : strategyProp;
-  };
-  
-  if (player.POS?.includes('SP') || player.POS?.includes('RP')) {
-    value *= (1 + getStrategyValue(strategy.pitchingFocus));
-  } else {
-    value *= (1 + (player.HR || 0) * getStrategyValue(strategy.powerFocus));
-    value *= (1 + (player.AVG || 0) * getStrategyValue(strategy.contactFocus));
-  }
-
-  // Check if current position is favored
-  if (getStrategyValue(strategy.favorPosition) === player.POS) {
-    value *= 1.5;
-  }
-
-  // Special case for ChaosTheory's wild spending
-  if (getStrategyValue(strategy.willingToOverpay)) {
-    value *= 1 + Math.random(); // Up to 100% boost
-  }
-
-  if (getStrategyValue(strategy.valueHunting)) {
-    value = value / player.salary;
-  }
-
-  const riskTolerance = getStrategyValue(strategy.riskTolerance);
-  value *= (1 - riskTolerance/2 + Math.random() * riskTolerance);
-
-  return value;
-};
+  const generateAiTeam = (competitor) => {
+    const strategy = {
+      powerFocus: Math.random(),
+      contactFocus: Math.random(),
+      pitchingFocus: Math.random(),
+      stackingPreference: Math.random() > 0.7,
+      valueHunting: Math.random() > 0.5,
+      riskTolerance: Math.random()
+    };
 
     let roster = [];
     let totalSalary = 0;
