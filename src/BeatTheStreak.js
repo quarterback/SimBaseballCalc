@@ -13,7 +13,7 @@ const BeatTheStreak = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [gameOver, setGameOver] = useState(false);
 
-  // Pagination and Sorting
+  // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
   const playersPerPage = 10;
   const [sortField, setSortField] = useState(null);
@@ -69,8 +69,8 @@ const BeatTheStreak = () => {
   const makePick = (player) => {
     setError('');
     setSelectedPlayers((prev) => {
-      if (prev.some((p) => p.id === player.id)) {
-        return prev.filter((p) => p.id !== player.id);
+      if (prev.some(p => p.id === player.id)) {
+        return prev.filter(p => p.id !== player.id);
       }
 
       if (prev.length >= 1 && !eitherOrUsed) {
@@ -184,19 +184,20 @@ const BeatTheStreak = () => {
           <div className="bg-white shadow p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Available Players</h3>
 
-            <div className="flex space-x-2 mb-4">
-              <button onClick={() => toggleSort('games')} className="px-3 py-1 bg-gray-300 rounded">Sort by Games</button>
-              <button onClick={() => toggleSort('obp')} className="px-3 py-1 bg-gray-300 rounded">Sort by OBP</button>
-              <button onClick={() => toggleSort('war')} className="px-3 py-1 bg-gray-300 rounded">Sort by WAR</button>
-            </div>
-
             <table className="min-w-full">
               <tbody>
                 {currentPlayers.map(player => (
                   <tr key={player.id} className="border-t">
                     <td className="p-2">{player.name}</td>
                     <td className="p-2">
-                      <button onClick={() => makePick(player)} className="px-3 py-1 bg-blue-500 text-white rounded">Pick</button>
+                      <button 
+                        onClick={() => makePick(player)} 
+                        className={`px-3 py-1 rounded ${
+                          selectedPlayers.some(p => p.id === player.id) ? 'bg-red-500' : 'bg-blue-500'
+                        } text-white`}
+                      >
+                        {selectedPlayers.some(p => p.id === player.id) ? 'Remove' : 'Pick'}
+                      </button>
                     </td>
                   </tr>
                 ))}
