@@ -647,15 +647,6 @@ const SeasonDFS = () => {
         </div>
       </div>
 
-      {gameLocked && (
-        <button
-          onClick={advanceWeek}
-          className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
-        >
-          Advance to Week {seasonWeek + 1}
-        </button>
-      )}
-
       {/* Leaderboard */}
 {gameLocked && (
         <button
