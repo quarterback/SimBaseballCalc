@@ -53,7 +53,7 @@ const BeatTheStreak = () => {
             games: player.G || 0,
             obp: player.OBP || 0,
             war: player.WAR || 0,
-            hits: player.H || 0
+            hits: player.H || 0 // Hidden in UI
           }));
 
           setAvailablePlayers(processedPlayers);
@@ -72,11 +72,9 @@ const BeatTheStreak = () => {
       if (prev.some(p => p.id === player.id)) {
         return prev.filter(p => p.id !== player.id);
       }
-
       if (prev.length >= 1 && !eitherOrUsed) {
         return [...prev, player].slice(-2);
       }
-
       return [player];
     });
   };
@@ -101,6 +99,7 @@ const BeatTheStreak = () => {
     setRound(prev => {
       if (prev + 1 > MAX_ROUNDS) {
         setGameOver(true);
+        return prev;
       }
       return prev + 1;
     });
@@ -185,19 +184,28 @@ const BeatTheStreak = () => {
             <h3 className="text-lg font-semibold mb-2">Available Players</h3>
 
             <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>POS</th>
+                  <th>Team</th>
+                  <th>G</th>
+                  <th>OBP</th>
+                  <th>WAR</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
               <tbody>
                 {currentPlayers.map(player => (
-                  <tr key={player.id} className="border-t">
-                    <td className="p-2">{player.name}</td>
-                    <td className="p-2">
-                      <button 
-                        onClick={() => makePick(player)} 
-                        className={`px-3 py-1 rounded ${
-                          selectedPlayers.some(p => p.id === player.id) ? 'bg-red-500' : 'bg-blue-500'
-                        } text-white`}
-                      >
-                        {selectedPlayers.some(p => p.id === player.id) ? 'Remove' : 'Pick'}
-                      </button>
+                  <tr key={player.id}>
+                    <td>{player.name}</td>
+                    <td>{player.pos}</td>
+                    <td>{player.team}</td>
+                    <td>{player.games}</td>
+                    <td>{player.obp.toFixed(3)}</td>
+                    <td>{player.war}</td>
+                    <td>
+                      <button onClick={() => makePick(player)}>Pick</button>
                     </td>
                   </tr>
                 ))}
@@ -205,7 +213,7 @@ const BeatTheStreak = () => {
             </table>
           </div>
 
-          <button onClick={submitPick} className="mt-4 bg-green-500 text-white p-2 rounded">Submit Pick</button>
+          <button onClick={submitPick}>Submit Pick</button>
         </>
       )}
     </div>
