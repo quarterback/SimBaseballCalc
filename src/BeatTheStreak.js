@@ -46,13 +46,14 @@ const BeatTheStreak = () => {
           }
 
           const processedPlayers = results.data.map(player => ({
+            id: `${player.Name}-${player.TM}`,
             name: player.Name || 'Unknown',
             pos: player.POS || 'Unknown',
             team: player.TM || 'Unknown',
             games: player.G || 0,
             obp: player.OBP || 0,
             war: player.WAR || 0,
-            hits: player.H || 0 
+            hits: player.H || 0
           }));
 
           setAvailablePlayers(processedPlayers);
@@ -67,10 +68,9 @@ const BeatTheStreak = () => {
 
   const makePick = (player) => {
     setError('');
-
     setSelectedPlayers((prev) => {
-      if (prev.includes(player)) {
-        return prev.filter(p => p !== player);
+      if (prev.some((p) => p.id === player.id)) {
+        return prev.filter((p) => p.id !== player.id);
       }
 
       if (prev.length >= 1 && !eitherOrUsed) {
@@ -118,13 +118,29 @@ const BeatTheStreak = () => {
     setSelectedPlayers([]);
   };
 
+  // Sorting Logic
+  const toggleSort = (field) => {
+    const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortOrder(order);
+
+    const sortedPlayers = [...availablePlayers].sort((a, b) => {
+      return order === 'asc' ? a[field] - b[field] : b[field] - a[field];
+    });
+
+    setAvailablePlayers(sortedPlayers);
+  };
+
   // Pagination Logic
+  const filteredPlayers = availablePlayers.filter(player =>
+    player.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const indexOfLastPlayer = currentPage * playersPerPage;
   const indexOfFirstPlayer = indexOfLastPlayer - playersPerPage;
-  const currentPlayers = availablePlayers.slice(indexOfFirstPlayer, indexOfLastPlayer);
+  const currentPlayers = filteredPlayers.slice(indexOfFirstPlayer, indexOfLastPlayer);
 
   const nextPage = () => {
-    if (indexOfLastPlayer < availablePlayers.length) {
+    if (indexOfLastPlayer < filteredPlayers.length) {
       setCurrentPage(prev => prev + 1);
     }
   };
@@ -133,23 +149,6 @@ const BeatTheStreak = () => {
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1);
     }
-  };
-
-  // Sorting Logic
-  const toggleSort = (field) => {
-    const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
-    setSortField(field);
-    setSortOrder(order);
-
-    const sortedPlayers = [...availablePlayers].sort((a, b) => {
-      if (order === 'asc') {
-        return a[field] - b[field];
-      } else {
-        return b[field] - a[field];
-      }
-    });
-
-    setAvailablePlayers(sortedPlayers);
   };
 
   return (
@@ -185,7 +184,6 @@ const BeatTheStreak = () => {
           <div className="bg-white shadow p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Available Players</h3>
 
-            {/* Sorting Buttons */}
             <div className="flex space-x-2 mb-4">
               <button onClick={() => toggleSort('games')} className="px-3 py-1 bg-gray-300 rounded">Sort by Games</button>
               <button onClick={() => toggleSort('obp')} className="px-3 py-1 bg-gray-300 rounded">Sort by OBP</button>
@@ -193,27 +191,11 @@ const BeatTheStreak = () => {
             </div>
 
             <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-2 text-left">Name</th>
-                  <th className="p-2 text-left">POS</th>
-                  <th className="p-2 text-left">Team</th>
-                  <th className="p-2 text-right">G</th>
-                  <th className="p-2 text-right">OBP</th>
-                  <th className="p-2 text-right">WAR</th>
-                  <th className="p-2 text-right">Action</th>
-                </tr>
-              </thead>
               <tbody>
-                {currentPlayers.map((player, idx) => (
-                  <tr key={idx} className="border-t">
+                {currentPlayers.map(player => (
+                  <tr key={player.id} className="border-t">
                     <td className="p-2">{player.name}</td>
-                    <td className="p-2">{player.pos}</td>
-                    <td className="p-2">{player.team}</td>
-                    <td className="p-2 text-right">{player.games}</td>
-                    <td className="p-2 text-right">{player.obp.toFixed(3)}</td>
-                    <td className="p-2 text-right">{player.war}</td>
-                    <td className="p-2 text-right">
+                    <td className="p-2">
                       <button onClick={() => makePick(player)} className="px-3 py-1 bg-blue-500 text-white rounded">Pick</button>
                     </td>
                   </tr>
@@ -221,6 +203,8 @@ const BeatTheStreak = () => {
               </tbody>
             </table>
           </div>
+
+          <button onClick={submitPick} className="mt-4 bg-green-500 text-white p-2 rounded">Submit Pick</button>
         </>
       )}
     </div>
