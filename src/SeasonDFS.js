@@ -28,8 +28,6 @@ const SeasonDFS = () => {
   // Constants
   const SALARY_CAP = 50000;
   const MIN_SALARY = 3000;
-  const symbols = ['_', '', '.'];
-  const numbers = () => Math.floor(Math.random() * 999).toString().padStart(2, '0');
   const POSITIONS = ['ALL', 'SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   const ROSTER_REQUIREMENTS = {
@@ -76,102 +74,95 @@ const SeasonDFS = () => {
     }));
   };
 
-const regularCompetitors = [
-  { 
-    name: 'NikkiKnuckles',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.7,
-      contactFocus: 0.4,
-      pitchingFocus: 0.8,
-      riskTolerance: 0.6,
-      valueHunting: true
+  const regularCompetitors = [
+    { 
+      name: 'NikkiKnuckles',
+      isRegular: true,
+      strategy: {
+        powerFocus: 0.7,
+        contactFocus: 0.4,
+        pitchingFocus: 0.8,
+        riskTolerance: 0.6,
+        valueHunting: true
+      }
+    },
+    { 
+      name: 'MarioTheBarber',
+      isRegular: true,
+      strategy: {
+        powerFocus: 0.3,
+        contactFocus: 0.9,
+        pitchingFocus: 0.6,
+        riskTolerance: 0.4,
+        valueHunting: false
+      }
+    },
+    { 
+      name: 'LahdeeenLegend',
+      isRegular: true,
+      strategy: {
+        powerFocus: 0.9,
+        contactFocus: 0.3,
+        pitchingFocus: 0.5,
+        riskTolerance: 0.8,
+        valueHunting: true
+      }
+    },
+    { 
+      name: 'DionGiantsBucs',
+      isRegular: true,
+      strategy: {
+        powerFocus: 0.6,
+        contactFocus: 0.6,
+        pitchingFocus: 0.7,
+        riskTolerance: 0.5,
+        valueHunting: true
+      }
+    },
+    { 
+      name: 'xWARlord420',
+      isRegular: true,
+      strategy: {
+        powerFocus: 0.8,
+        contactFocus: 0.5,
+        pitchingFocus: 0.4,
+        riskTolerance: 0.7,
+        valueHunting: false
+      }
+    },
+    {
+      name: 'ChaosTheory',
+      isRegular: true,
+      strategy: {
+        powerFocus: () => Math.random() * 2,
+        contactFocus: () => Math.random() * 2,
+        pitchingFocus: () => Math.random() * 2,
+        riskTolerance: 1.0,
+        valueHunting: () => Math.random() > 0.5,
+        stackingPreference: () => Math.random() > 0.3,
+        maxSalaryPerPlayer: () => 3000 + Math.random() * 47000,
+        favorPosition: () => {
+          const positions = ['SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'OF'];
+          return positions[Math.floor(Math.random() * positions.length)];
+        },
+        willingToOverpay: () => Math.random() > 0.7
+      }
     }
-  },
-  { 
-    name: 'MarioTheBarber',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.3,
-      contactFocus: 0.9,
-      pitchingFocus: 0.6,
-      riskTolerance: 0.4,
-      valueHunting: false
-    }
-  },
-  { 
-    name: 'LahdeeenLegend',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.9,
-      contactFocus: 0.3,
-      pitchingFocus: 0.5,
-      riskTolerance: 0.8,
-      valueHunting: true
-    }
-  },
-  { 
-    name: 'DionGiantsBucs',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.6,
-      contactFocus: 0.6,
-      pitchingFocus: 0.7,
-      riskTolerance: 0.5,
-      valueHunting: true
-    }
-  },
-  { 
-    name: 'xWARlord420',
-    isRegular: true,
-    strategy: {
-      powerFocus: 0.8,
-      contactFocus: 0.5,
-      pitchingFocus: 0.4,
-      riskTolerance: 0.7,
-      valueHunting: false
-    }
-  },
-  {
-    name: 'ChaosTheory',
-    isRegular: true,
-    strategy: {
-      // Highly variable strategy that changes each evaluation
-      powerFocus: () => Math.random() * 2,  // Can go up to 200% power focus
-      contactFocus: () => Math.random() * 2,
-      pitchingFocus: () => Math.random() * 2,
-      riskTolerance: 1.0,  // Maximum risk tolerance
-      valueHunting: () => Math.random() > 0.5,  // Randomly decides whether to value hunt
-      // Additional chaos factors
-      stackingPreference: () => Math.random() > 0.3,  // 70% chance to stack positions
-      maxSalaryPerPlayer: () => 3000 + Math.random() * 47000,  // Highly variable salary limits
-      favorPosition: () => {
-        const positions = ['SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'OF'];
-        return positions[Math.floor(Math.random() * positions.length)];
-      },
-      // Can make extremely aggressive moves
-      willingToOverpay: () => Math.random() > 0.7  // 30% chance to ignore value considerations
-    }
-  }
-];
+  ];
 
-  // Calculate bonuses for the week
   const calculateWeeklyBonuses = (rank, score) => {
     let bonus = 0;
     
-    // Position bonuses
     if (rank === 1) bonus += 1000;
     else if (rank <= 3) bonus += 500;
     else if (rank <= 10) bonus += 250;
     
-    // Streak bonus
     if (streaks.userStreak >= 3) bonus *= 1.1;
     if (streaks.userStreak >= 5) bonus *= 1.25;
     
     return bonus;
   };
 
-  // File processing and stat calculations
   const processFile = async (file) => {
     setLoadingStats(true);
     setError('');
@@ -253,13 +244,11 @@ const regularCompetitors = [
       return counts;
     }, {});
 
-    // Check if we have enough pitchers total (SP + RP)
     const totalPitchers = (positionCounts['SP'] || 0) + (positionCounts['RP'] || 0);
     if (totalPitchers < 2) {
       return `Need 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
     }
 
-    // Check each position's min/max requirements
     for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
       if (pos === 'UTIL') continue;
       const count = positionCounts[pos] || 0;
@@ -286,7 +275,6 @@ const regularCompetitors = [
       return;
     }
 
-    // Check if adding this player would exceed position limits
     const updatedRoster = [...userRoster, player];
     const positionCounts = updatedRoster.reduce((counts, p) => {
       const pos = p.POS;
@@ -318,63 +306,51 @@ const regularCompetitors = [
     setCurrentScore(score);
   };
 
-const evaluatePlayer = (player) => {
-  let value = player.points;
-  
-  // Handle function-based strategy values
-  const getStrategyValue = (strategyProp) => {
-    return typeof strategyProp === 'function' ? strategyProp() : strategyProp;
-  };
-  
-  if (player.POS?.includes('SP') || player.POS?.includes('RP')) {
-    value *= (1 + getStrategyValue(strategy.pitchingFocus));
-  } else {
-    value *= (1 + (player.HR || 0) * getStrategyValue(strategy.powerFocus));
-    value *= (1 + (player.AVG || 0) * getStrategyValue(strategy.contactFocus));
-  }
-
-  // Check if current position is favored
-  if (getStrategyValue(strategy.favorPosition) === player.POS) {
-    value *= 1.5;
-  }
-
-  // Special case for ChaosTheory's wild spending
-  if (getStrategyValue(strategy.willingToOverpay)) {
-    value *= 1 + Math.random(); // Up to 100% boost
-  }
-
-  if (getStrategyValue(strategy.valueHunting)) {
-    value = value / player.salary;
-  }
-
-  const riskTolerance = getStrategyValue(strategy.riskTolerance);
-  value *= (1 - riskTolerance/2 + Math.random() * riskTolerance);
-
-  return value;
-};
-  
-    let roster = [];
-    let totalSalary = 0;
-    let availablePool = [...availablePlayers];
+  const generateAiTeam = (competitor) => {
+    const strategy = competitor.strategy || {
+      powerFocus: Math.random(),
+      contactFocus: Math.random(),
+      pitchingFocus: Math.random(),
+      stackingPreference: Math.random() > 0.7,
+      valueHunting: Math.random() > 0.5,
+      riskTolerance: Math.random()
+    };
 
     const evaluatePlayer = (player) => {
       let value = player.points;
       
+      const getStrategyValue = (strategyProp) => {
+        return typeof strategyProp === 'function' ? strategyProp() : strategyProp;
+      };
+      
       if (player.POS?.includes('SP') || player.POS?.includes('RP')) {
-        value *= (1 + strategy.pitchingFocus);
+        value *= (1 + getStrategyValue(strategy.pitchingFocus));
       } else {
-        value *= (1 + (player.HR || 0) * strategy.powerFocus);
-        value *= (1 + (player.AVG || 0) * strategy.contactFocus);
+        value *= (1 + (player.HR || 0) * getStrategyValue(strategy.powerFocus));
+        value *= (1 + (player.AVG || 0) * getStrategyValue(strategy.contactFocus));
       }
 
-      if (strategy.valueHunting) {
+      if (strategy.favorPosition && getStrategyValue(strategy.favorPosition) === player.POS) {
+        value *= 1.5;
+      }
+
+      if (strategy.willingToOverpay && getStrategyValue(strategy.willingToOverpay)) {
+        value *= 1 + Math.random();
+      }
+
+      if (getStrategyValue(strategy.valueHunting)) {
         value = value / player.salary;
       }
 
-      value *= (1 - strategy.riskTolerance/2 + Math.random() * strategy.riskTolerance);
+      const riskTolerance = getStrategyValue(strategy.riskTolerance);
+      value *= (1 - riskTolerance/2 + Math.random() * riskTolerance);
 
       return value;
     };
+
+    let roster = [];
+    let totalSalary = 0;
+    let availablePool = [...availablePlayers];
 
     // Fill required positions
     for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
@@ -423,67 +399,59 @@ const evaluatePlayer = (player) => {
     };
   };
 
-const lockGame = () => {
+  const lockGame = () => {
     if (userRoster.length !== 10) {
-        setError('Must have exactly 10 players (including UTIL) to lock lineup');
-        return;
+      setError('Must have exactly 10 players (including UTIL) to lock lineup');
+      return;
     }
 
     const positionError = validateRoster(userRoster);
     if (positionError) {
-        setError(positionError);
-        return;
+      setError(positionError);
+      return;
     }
 
-    // Generate AI teams
     const competitors = [
-        ...regularCompetitors.slice(0, 5),
-        ...generateCompetitorPool(15)
+      ...regularCompetitors,
+      ...generateCompetitorPool(15 - regularCompetitors.length)
     ].sort(() => Math.random() - 0.5).slice(0, 15);
 
     const aiResults = competitors.map(competitor => generateAiTeam(competitor));
 
-    // Add user to results
     const allResults = [
-        { name: 'You', score: currentScore, roster: userRoster, salary: currentSalary },
-        ...aiResults
+      { name: 'You', score: currentScore, roster: userRoster, salary: currentSalary },
+      ...aiResults
     ].sort((a, b) => b.score - a.score);
 
-    // Find user's rank
     const userRank = allResults.findIndex(result => result.name === 'You') + 1;
 
-    // Store weekly results in history
     const weekResult = {
-        week: seasonWeek,
-        score: currentScore,
-        rank: userRank,
-        earnings: calculateWeeklyBonuses(userRank, currentScore)
+      week: seasonWeek,
+      score: currentScore,
+      rank: userRank,
+      earnings: calculateWeeklyBonuses(userRank, currentScore)
     };
 
     setSeasonHistory(prev => [...prev, weekResult]);
 
-    // Update streaks and season points
     setStreaks(prev => ({
-        userStreak: userRank <= 3 ? prev.userStreak + 1 : 0,
-        weeklyRanks: [...prev.weeklyRanks, userRank]
+      userStreak: userRank <= 3 ? prev.userStreak + 1 : 0,
+      weeklyRanks: [...prev.weeklyRanks, userRank]
     }));
 
     setSeasonPoints(prev => prev + currentScore);
-
-    // Lock current game
     setAiTeams(allResults);
     setWinner(allResults[0]);
     setGameLocked(true);
-};
+  };
 
-// **New function to advance to the next week**
-const advanceWeek = () => {
-    setUserRoster([]);  // Reset user roster
-    setCurrentSalary(0);  // Reset salary cap usage
-    setCurrentScore(0);  // Reset current score
-    setGameLocked(false);  // Unlock game for next week
-    setSeasonWeek(prev => prev + 1);  // Increment season week
-};
+  const advanceWeek = () => {
+    setUserRoster([]);
+    setCurrentSalary(0);
+    setCurrentScore(0);
+    setGameLocked(false);
+    setSeasonWeek(prev => prev + 1);
+  };
 
   return (
     <div className="space-y-6">
@@ -679,14 +647,24 @@ const advanceWeek = () => {
         </div>
       </div>
 
+      {gameLocked && (
+        <button
+          onClick={advanceWeek}
+          className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
+        >
+          Advance to Week {seasonWeek + 1}
+        </button>
+      )}
+
+      {/* Leaderboard */}
 {gameLocked && (
-    <button
-        onClick={advanceWeek}
-        className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
-    >
-        Advance to Week {seasonWeek + 1}
-    </button>
-)}
+        <button
+          onClick={advanceWeek}
+          className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
+        >
+          Advance to Week {seasonWeek + 1}
+        </button>
+      )}
 
       {/* Leaderboard */}
       {gameLocked && aiTeams.length > 0 && (
