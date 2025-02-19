@@ -13,6 +13,12 @@ const BeatTheStreak = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [gameOver, setGameOver] = useState(false);
 
+  // Pagination and Sorting
+  const [currentPage, setCurrentPage] = useState(1);
+  const playersPerPage = 10;
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState('asc');
+
   const HITS_TARGET = 99;
   const JACKPOT_RANGE = { min: 3000000, max: 7000000 };
   const MAX_ROUNDS = 3;
@@ -50,6 +56,7 @@ const BeatTheStreak = () => {
           }));
 
           setAvailablePlayers(processedPlayers);
+          setCurrentPage(1);
         },
         error: (error) => setError(`Error processing file: ${error.message}`)
       });
@@ -58,48 +65,46 @@ const BeatTheStreak = () => {
     }
   };
 
-const makePick = (player) => {
-  setError('');
+  const makePick = (player) => {
+    setError('');
 
-  setSelectedPlayers((prev) => {
-    // Check if player is already selected, remove if so
-    if (prev.includes(player)) {
-      return prev.filter(p => p !== player);
+    setSelectedPlayers((prev) => {
+      if (prev.includes(player)) {
+        return prev.filter(p => p !== player);
+      }
+
+      if (prev.length >= 1 && !eitherOrUsed) {
+        return [...prev, player].slice(-2);
+      }
+
+      return [player];
+    });
+  };
+
+  const submitPick = () => {
+    if (selectedPlayers.length === 0) {
+      setError('You must select at least one player.');
+      return;
     }
 
-    // Allow only 1 pick normally, 2 if using Either/Or
-    if (prev.length >= 1 && !eitherOrUsed) {
-      return [...prev, player].slice(-2);
+    let hitsGained = 0;
+    if (selectedPlayers.length === 1) {
+      hitsGained = selectedPlayers[0].hits;
+    } else if (selectedPlayers.length === 2) {
+      hitsGained = Math.max(selectedPlayers[0].hits, selectedPlayers[1].hits);
+      setEitherOrUsed(true);
     }
 
-    return [player];
-  });
-};
+    setTotalHits(prev => prev + hitsGained);
+    setSelectedPlayers([]);
 
-
-const submitPick = () => {
-  if (selectedPlayers.length === 0) {
-    setError('You must select at least one player.');
-    return;
-  }
-  
-  let hitsGained = 0;
-
-  if (selectedPlayers.length === 1) {
-    hitsGained = selectedPlayers[0].hits;
-  } else if (selectedPlayers.length === 2) {
-    hitsGained = Math.max(selectedPlayers[0].hits, selectedPlayers[1].hits);
-    setEitherOrUsed(true);
-  }
-
-  setTotalHits(prev => prev + hitsGained);
-  setSelectedPlayers([]);
-  setRound(prev => prev + 1);
-
-  if (round >= MAX_ROUNDS) {
-    setGameOver(true);
-  }
-};
+    setRound(prev => {
+      if (prev + 1 > MAX_ROUNDS) {
+        setGameOver(true);
+      }
+      return prev + 1;
+    });
+  };
 
   const resetGame = () => {
     if (totalHits > bestScore) {
@@ -111,6 +116,40 @@ const submitPick = () => {
     setGameOver(false);
     setEitherOrUsed(false);
     setSelectedPlayers([]);
+  };
+
+  // Pagination Logic
+  const indexOfLastPlayer = currentPage * playersPerPage;
+  const indexOfFirstPlayer = indexOfLastPlayer - playersPerPage;
+  const currentPlayers = availablePlayers.slice(indexOfFirstPlayer, indexOfLastPlayer);
+
+  const nextPage = () => {
+    if (indexOfLastPlayer < availablePlayers.length) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  // Sorting Logic
+  const toggleSort = (field) => {
+    const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortOrder(order);
+
+    const sortedPlayers = [...availablePlayers].sort((a, b) => {
+      if (order === 'asc') {
+        return a[field] - b[field];
+      } else {
+        return b[field] - a[field];
+      }
+    });
+
+    setAvailablePlayers(sortedPlayers);
   };
 
   return (
@@ -145,6 +184,14 @@ const submitPick = () => {
 
           <div className="bg-white shadow p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Available Players</h3>
+
+            {/* Sorting Buttons */}
+            <div className="flex space-x-2 mb-4">
+              <button onClick={() => toggleSort('games')} className="px-3 py-1 bg-gray-300 rounded">Sort by Games</button>
+              <button onClick={() => toggleSort('obp')} className="px-3 py-1 bg-gray-300 rounded">Sort by OBP</button>
+              <button onClick={() => toggleSort('war')} className="px-3 py-1 bg-gray-300 rounded">Sort by WAR</button>
+            </div>
+
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -158,7 +205,7 @@ const submitPick = () => {
                 </tr>
               </thead>
               <tbody>
-                {availablePlayers.filter(player => player.name.toLowerCase().includes(searchQuery.toLowerCase())).map((player, idx) => (
+                {currentPlayers.map((player, idx) => (
                   <tr key={idx} className="border-t">
                     <td className="p-2">{player.name}</td>
                     <td className="p-2">{player.pos}</td>
@@ -167,15 +214,7 @@ const submitPick = () => {
                     <td className="p-2 text-right">{player.obp.toFixed(3)}</td>
                     <td className="p-2 text-right">{player.war}</td>
                     <td className="p-2 text-right">
-                    <button
-  onClick={() => makePick(player)}
-  className={`px-3 py-1 rounded ${
-    selectedPlayers.includes(player) ? 'bg-red-500' : 'bg-blue-500'
-  } text-white`}
->
-  {selectedPlayers.includes(player) ? 'Remove' : 'Pick'}
-</button>
-
+                      <button onClick={() => makePick(player)} className="px-3 py-1 bg-blue-500 text-white rounded">Pick</button>
                     </td>
                   </tr>
                 ))}
