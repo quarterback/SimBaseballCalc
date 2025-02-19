@@ -25,10 +25,6 @@ function App() {
               Fantasy Calculator
             </Link>
             <Link 
-              to="/season-dfs" 
-              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-            <Link 
               to="/beat-the-streak" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
