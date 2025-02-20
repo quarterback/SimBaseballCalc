@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import FantasyCalculator from './FantasyCalculator';
 import SeasonDFS from './SeasonDFS';
-import SoloDFS from './SoloDFS';
 import DFSAI from './DFSAI';
 import AdvancedStatsTool from './AdvancedStatsTool';
 import FanInterestCalc from './FanInterestCalc';
