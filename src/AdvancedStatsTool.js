@@ -1,98 +1,140 @@
-import React, { useState } from 'react';
-import { Bar, Radar, Scatter } from 'recharts';
+import React, { useState } from "react";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const AdvancedStatsTool = () => {
-  const [players, setPlayers] = useState([]);
-  const [playerData, setPlayerData] = useState({});
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [error, setError] = useState('');
+  // State for manual stat input
+  const [playerData, setPlayerData] = useState({
+    name: "",
+    team: "",
+    obp: "",
+    war: "",
+    iso: "",
+    opsPlus: "",
+    babip: "",
+  });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPlayerData({ ...playerData, [name]: value });
-  };
-
-  const addPlayer = () => {
-    if (!playerData.name || !playerData.obp || !playerData.war) {
-      setError('Please fill in at least Name, OBP, and WAR');
-      return;
-    }
-    setPlayers([...players, playerData]);
-    setPlayerData({});
-    setError('');
-  };
-
-  const selectPlayer = (player) => {
-    setSelectedPlayers((prev) => {
-      if (prev.includes(player)) {
-        return prev.filter((p) => p !== player);
-      }
-      return [...prev, player];
+  // Handle user input
+  const handleChange = (e) => {
+    setPlayerData({
+      ...playerData,
+      [e.target.name]: e.target.value,
     });
   };
 
+  // Convert input values to numbers for chart rendering
+  const formattedData = [
+    { stat: "OBP", value: parseFloat(playerData.obp) || 0 },
+    { stat: "WAR", value: parseFloat(playerData.war) || 0 },
+    { stat: "ISO", value: parseFloat(playerData.iso) || 0 },
+    { stat: "OPS+", value: parseFloat(playerData.opsPlus) || 0 },
+    { stat: "BABIP", value: parseFloat(playerData.babip) || 0 },
+  ];
+
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold text-center">OOTP Advanced Stats Tool</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        {/* Input Form */}
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold mb-3">Enter Player Stats</h2>
-          {error && <p className="text-red-500">{error}</p>}
-          <input
-            type="text"
-            name="name"
-            placeholder="Player Name"
-            value={playerData.name || ''}
-            onChange={handleInputChange}
-            className="block w-full p-2 border rounded mb-2"
-          />
-          <input
-            type="number"
-            name="obp"
-            placeholder="OBP"
-            value={playerData.obp || ''}
-            onChange={handleInputChange}
-            className="block w-full p-2 border rounded mb-2"
-          />
-          <input
-            type="number"
-            name="war"
-            placeholder="WAR"
-            value={playerData.war || ''}
-            onChange={handleInputChange}
-            className="block w-full p-2 border rounded mb-2"
-          />
-          <button
-            onClick={addPlayer}
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            Add Player
-          </button>
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+      <h2 className="text-2xl font-bold text-center mb-4">Advanced Stats Visualizer</h2>
+
+      {/* Input Form */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <input
+          type="text"
+          name="name"
+          value={playerData.name}
+          onChange={handleChange}
+          placeholder="Player Name"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="text"
+          name="team"
+          value={playerData.team}
+          onChange={handleChange}
+          placeholder="Team Name"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="number"
+          step="0.001"
+          name="obp"
+          value={playerData.obp}
+          onChange={handleChange}
+          placeholder="OBP (e.g., .360)"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="number"
+          step="0.1"
+          name="war"
+          value={playerData.war}
+          onChange={handleChange}
+          placeholder="WAR (e.g., 3.2)"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="number"
+          step="0.01"
+          name="iso"
+          value={playerData.iso}
+          onChange={handleChange}
+          placeholder="ISO (e.g., .200)"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="number"
+          name="opsPlus"
+          value={playerData.opsPlus}
+          onChange={handleChange}
+          placeholder="OPS+ (e.g., 125)"
+          className="p-2 border rounded-md w-full"
+        />
+        <input
+          type="number"
+          step="0.001"
+          name="babip"
+          value={playerData.babip}
+          onChange={handleChange}
+          placeholder="BABIP (e.g., .310)"
+          className="p-2 border rounded-md w-full"
+        />
+      </div>
+
+      {/* Visualizations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Radar Chart */}
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-center mb-2">Radar Chart</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={formattedData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="stat" />
+              <PolarRadiusAxis />
+              <Radar name={playerData.name || "Player"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+            </RadarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Player List */}
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold mb-3">Players</h2>
-          <ul>
-            {players.map((player, index) => (
-              <li
-                key={index}
-                className={`p-2 cursor-pointer ${selectedPlayers.includes(player) ? 'bg-blue-200' : 'hover:bg-gray-200'}`}
-                onClick={() => selectPlayer(player)}
-              >
-                {player.name} - OBP: {player.obp} - WAR: {player.war}
-              </li>
-            ))}
-          </ul>
+        {/* Bar Chart */}
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-center mb-2">Bar Chart</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={formattedData}>
+              <XAxis dataKey="stat" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#82ca9d" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Placeholder for Graphs */}
-      <div className="mt-6 p-4 bg-white rounded shadow">
-        <h2 className="text-lg font-semibold mb-3">Visualizations (Coming Soon)</h2>
-        <p>Select at least one player to generate visuals.</p>
-      </div>
+      {/* Display player and team info */}
+      {playerData.name && playerData.team && (
+        <div className="text-center mt-6">
+          <h3 className="text-xl font-semibold">
+            {playerData.name} - {playerData.team}
+          </h3>
+        </div>
+      )}
     </div>
   );
 };
