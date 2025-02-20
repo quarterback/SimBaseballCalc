@@ -4,6 +4,7 @@ import FantasyCalculator from './FantasyCalculator';
 import SeasonDFS from './SeasonDFS';
 import SoloDFS from './SoloDFS';
 import DFSAI from './DFSAI';
+import AdvancedStatsTool from './AdvancedStatsTool';
 import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc';
 import BeatTheStreak from './BeatTheStreak';
@@ -40,7 +41,7 @@ function App() {
               to="/solo-dfs" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              Solo DFS
+              Advanced Stats Tool
             </Link>
             <Link 
               to="/dfs-ai" 
@@ -67,7 +68,7 @@ function App() {
               <Route path="/" element={<FantasyCalculator />} />
               <Route path="/beat-the-streak" element={<BeatTheStreak />} />
               <Route path="/season-dfs" element={<SeasonDFS />} />
-              <Route path="/solo-dfs" element={<SoloDFS />} />
+              <Route path="/advanced-stats-tool" element={<AdvancedStatsTool />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
               <Route path="/market-calc" element={<MarketCalc />} />
               <Route path="/fan-interest" element={<FanInterestCalc />} />
