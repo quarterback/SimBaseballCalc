@@ -37,10 +37,10 @@ function App() {
               Season DFS
             </Link>
             <Link 
-              to="/solo-dfs" 
+              to="/ast" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              Advanced Stats Tool
+              AST
             </Link>
             <Link 
               to="/dfs-ai" 
@@ -67,7 +67,7 @@ function App() {
               <Route path="/" element={<FantasyCalculator />} />
               <Route path="/beat-the-streak" element={<BeatTheStreak />} />
               <Route path="/season-dfs" element={<SeasonDFS />} />
-              <Route path="/advanced-stats-tool" element={<AdvancedStatsTool />} />
+              <Route path="/ast" element={<AdvancedStatsTool />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
               <Route path="/market-calc" element={<MarketCalc />} />
               <Route path="/fan-interest" element={<FanInterestCalc />} />
