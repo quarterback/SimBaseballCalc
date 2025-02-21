@@ -27,7 +27,7 @@ const AdvancedStatsTool = () => {
     });
   };
 
-  // Calculate xERA using OOTP-approximated formula
+  // Calculate xERA (but NOT in the visualization)
   const xERA =
     (parseFloat(playerData.fip) || 4.00) * 0.7 +
     (parseFloat(playerData.whip) || 1.30) * 0.3 +
@@ -35,14 +35,17 @@ const AdvancedStatsTool = () => {
     (parseFloat(playerData.lobPercent) || 70) * 0.1 -
     (parseFloat(playerData.babip) || 0.300) * 0.2;
 
-  // Convert input values to numbers for radar chart
-  const formattedData = [
+  // Hitter Stats Radar Chart
+  const hitterData = [
     { stat: "OBP", value: parseFloat(playerData.obp) || 0 },
     { stat: "WAR", value: parseFloat(playerData.war) || 0 },
     { stat: "ISO", value: parseFloat(playerData.iso) || 0 },
     { stat: "OPS+", value: parseFloat(playerData.opsPlus) || 0 },
     { stat: "BABIP", value: parseFloat(playerData.babip) || 0 },
-    { stat: "xERA", value: parseFloat(xERA.toFixed(2)) || 0 },
+  ];
+
+  // Pitcher Stats Radar Chart
+  const pitcherData = [
     { stat: "FIP", value: parseFloat(playerData.fip) || 4.00 },
     { stat: "WHIP", value: parseFloat(playerData.whip) || 1.30 },
     { stat: "HR/9", value: parseFloat(playerData.hr9) || 1.2 },
@@ -74,6 +77,7 @@ const AdvancedStatsTool = () => {
         />
       </div>
 
+      {/* Hitting Inputs */}
       <h3 className="text-lg font-semibold text-center mb-2">Hitting Stats</h3>
       <div className="grid grid-cols-3 gap-4 mb-6">
         <input
@@ -122,6 +126,7 @@ const AdvancedStatsTool = () => {
         />
       </div>
 
+      {/* Pitching Inputs */}
       <h3 className="text-lg font-semibold text-center mb-2">Pitching Stats</h3>
       <div className="grid grid-cols-3 gap-4 mb-6">
         <input
@@ -169,15 +174,6 @@ const AdvancedStatsTool = () => {
           placeholder="BB% (e.g., 8)"
           className="p-2 border rounded-md w-full"
         />
-        <input
-          type="number"
-          step="0.1"
-          name="lobPercent"
-          value={playerData.lobPercent}
-          onChange={handleChange}
-          placeholder="LOB% (e.g., 75)"
-          className="p-2 border rounded-md w-full"
-        />
       </div>
 
       {/* Generated xERA */}
@@ -186,28 +182,33 @@ const AdvancedStatsTool = () => {
         <p className="text-3xl text-center font-bold">{xERA.toFixed(2)}</p>
       </div>
 
-      {/* Radar Chart */}
+      {/* Hitter Visualization */}
       <div className="p-4 bg-gray-100 rounded-lg shadow-md mt-6">
-        <h3 className="text-lg font-semibold text-center mb-2">Statcast-Style Player Visualization</h3>
+        <h3 className="text-lg font-semibold text-center mb-2">Hitter Performance Visualization</h3>
         <ResponsiveContainer width="100%" height={350}>
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={formattedData}>
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={hitterData}>
             <PolarGrid />
             <PolarAngleAxis dataKey="stat" />
             <PolarRadiusAxis />
             <Tooltip />
-            <Radar name={playerData.name || "Player"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+            <Radar name={playerData.name || "Hitter"} dataKey="value" stroke="#ff7300" fill="#ff7300" fillOpacity={0.6} />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Display player and team info */}
-      {playerData.name && playerData.team && (
-        <div className="text-center mt-6">
-          <h3 className="text-xl font-semibold">
-            {playerData.name} - {playerData.team}
-          </h3>
-        </div>
-      )}
+      {/* Pitcher Visualization */}
+      <div className="p-4 bg-gray-100 rounded-lg shadow-md mt-6">
+        <h3 className="text-lg font-semibold text-center mb-2">Pitcher Performance Visualization</h3>
+        <ResponsiveContainer width="100%" height={350}>
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={pitcherData}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey="stat" />
+            <PolarRadiusAxis />
+            <Tooltip />
+            <Radar name={playerData.name || "Pitcher"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
