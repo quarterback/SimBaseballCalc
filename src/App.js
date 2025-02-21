@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import FantasyCalculator from './FantasyCalculator';
 import SeasonDFS from './SeasonDFS';
 import DFSAI from './DFSAI';
+import FieldingRunValueCalculator from './FieldingRunValueCalculator';
 import AdvancedStatsTool from './AdvancedStatsTool';
 import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc';
@@ -43,6 +44,12 @@ function App() {
               AST
             </Link>
             <Link 
+              to="/frvc" 
+              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              FieldCalc
+            </Link> 
+            <Link 
               to="/dfs-ai" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -67,6 +74,7 @@ function App() {
               <Route path="/" element={<FantasyCalculator />} />
               <Route path="/beat-the-streak" element={<BeatTheStreak />} />
               <Route path="/season-dfs" element={<SeasonDFS />} />
+              <Route path="/frvc" element={<FieldingRunValueCalculator />} />
               <Route path="/ast" element={<AdvancedStatsTool />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
               <Route path="/market-calc" element={<MarketCalc />} />
