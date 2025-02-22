@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Scatter, ScatterChart, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Papa from 'papaparse';
 
 const StatcastHittingTool = () => {
@@ -435,7 +435,7 @@ return (
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-center mb-4">Exit Velocity vs Launch Angle</h3>
+      <h3 className="text-lg font-semibold text-center mb-4">Exit Velocity vs Launch Angle</h3>
             <ResponsiveContainer width="100%" height={300}>
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <XAxis type="number" dataKey="x" name="Launch Angle" unit="°" />
@@ -449,11 +449,7 @@ return (
         </div>
       </div>
     </div>
-  </div>
-);
-
-
-
-
+  );
+};
 
 export default StatcastHittingTool;
