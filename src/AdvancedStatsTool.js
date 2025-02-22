@@ -82,17 +82,6 @@ const AdvancedStatsTool = () => {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <input type="text" name="name" value={playerData.name} onChange={handleChange} placeholder="Player Name" className="p-2 border rounded-md w-full" />
         <input type="text" name="team" value={playerData.team} onChange={handleChange} placeholder="Team Name" className="p-2 border rounded-md w-full" />
-        {mode === "hitting" ? (
-          <>
-            <input type="number" name="obp" value={playerData.obp} onChange={handleChange} placeholder="OBP (e.g., .360)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="woba" value={playerData.woba} onChange={handleChange} placeholder="wOBA (e.g., .350)" className="p-2 border rounded-md w-full" />
-          </>
-        ) : (
-          <>
-            <input type="number" name="era" value={playerData.era} onChange={handleChange} placeholder="ERA (e.g., 3.20)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="fip" value={playerData.fip} onChange={handleChange} placeholder="FIP (e.g., 3.50)" className="p-2 border rounded-md w-full" />
-          </>
-        )}
       </div>
 
       <h3 className="text-lg font-semibold text-center mb-2">Radar Chart</h3>
@@ -104,6 +93,13 @@ const AdvancedStatsTool = () => {
           <Radar name={playerData.name || "Player"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
         </RadarChart>
       </ResponsiveContainer>
+
+      <h3 className="text-lg font-semibold text-center mt-6">Inferred Advanced Stats</h3>
+      <ul className="list-disc pl-6">
+        {inferredStats.map((stat, index) => (
+          <li key={index} className="text-center">{stat.stat}: {stat.value}</li>
+        ))}
+      </ul>
     </div>
   );
 };
