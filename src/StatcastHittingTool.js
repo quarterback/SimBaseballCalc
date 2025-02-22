@@ -414,26 +414,38 @@ return (
         </div>
       </div>
 
-      {/* Visualizations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-lg font-semibold text-center mb-4">Hitting Profile</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="stat" />
-                <PolarRadiusAxis />
-                <Radar
-                  name="Hitting Stats"
-                  dataKey="value"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-
+{/* Visualizations */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div>
+    <h3 className="text-lg font-semibold text-center mb-4">Hitting Profile</h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <RadarChart data={radarData}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey="stat" />
+        <PolarRadiusAxis />
+        <Radar
+          name="Hitting Stats"
+          dataKey="value"
+          stroke="#8884d8"
+          fill="#8884d8"
+          fillOpacity={0.6}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  </div>
+  <div>
+    <h3 className="text-lg font-semibold text-center mb-4">Exit Velocity vs Launch Angle</h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+        <XAxis type="number" dataKey="x" name="Launch Angle" unit="°" />
+        <YAxis type="number" dataKey="y" name="Exit Velocity" unit=" mph" />
+        <ZAxis type="number" dataKey="z" range={[50, 400]} name="Barrel%" />
+        <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+        <Scatter name="Values" data={scatterData} fill="#8884d8" />
+      </ScatterChart>
+    </ResponsiveContainer>
+  </div>
+</div>
           <div>
       <h3 className="text-lg font-semibold text-center mb-4">Exit Velocity vs Launch Angle</h3>
             <ResponsiveContainer width="100%" height={300}>
