@@ -1,213 +1,93 @@
 import React, { useState } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const AdvancedStatsTool = () => {
-  // State for manual stat input
-  const [playerData, setPlayerData] = useState({
+  const [pitcherData, setPitcherData] = useState({
     name: "",
     team: "",
-    obp: "",
-    war: "",
-    iso: "",
-    opsPlus: "",
-    babip: "",
-    fip: "",
-    whip: "",
+    stuff: "",
+    movement: "",
+    control: "",
+    velocity: "",
+    gbPercent: "",
     hr9: "",
-    kRate: "",
-    bbRate: "",
+    bb9: "",
+    k9: "",
     lobPercent: "",
+    fip: "",
+    era: ""
   });
 
-  // Handle user input
   const handleChange = (e) => {
-    setPlayerData({
-      ...playerData,
-      [e.target.name]: e.target.value,
+    setPitcherData({
+      ...pitcherData,
+      [e.target.name]: e.target.value
     });
   };
 
-  // Calculate xERA (but NOT in the visualization)
-  const xERA =
-    (parseFloat(playerData.fip) || 4.00) * 0.7 +
-    (parseFloat(playerData.whip) || 1.30) * 0.3 +
-    (parseFloat(playerData.hr9) || 1.2) * 1.2 -
-    (parseFloat(playerData.lobPercent) || 70) * 0.1 -
-    (parseFloat(playerData.babip) || 0.300) * 0.2;
-
-  // Hitter Stats Radar Chart
-  const hitterData = [
-    { stat: "OBP", value: parseFloat(playerData.obp) || 0 },
-    { stat: "WAR", value: parseFloat(playerData.war) || 0 },
-    { stat: "ISO", value: parseFloat(playerData.iso) || 0 },
-    { stat: "OPS+", value: parseFloat(playerData.opsPlus) || 0 },
-    { stat: "BABIP", value: parseFloat(playerData.babip) || 0 },
+  // Derived Metrics
+  const xERA = (3.00 + (parseFloat(pitcherData.fip) || 0) * 0.7 + (parseFloat(pitcherData.era) || 0) * 0.3).toFixed(2);
+  const iVB = ((parseFloat(pitcherData.movement) || 50) * 0.2 + (parseFloat(pitcherData.gbPercent) || 50) * 0.3).toFixed(1);
+  const iHB = ((parseFloat(pitcherData.movement) || 50) * 0.1 + (parseFloat(pitcherData.control) || 50) * 0.2 + (parseFloat(pitcherData.bb9) || 2.5) * 3).toFixed(1);
+  const whiffRate = ((parseFloat(pitcherData.k9) || 8) * 2.5).toFixed(1);
+  const xwOBAContact = ((parseFloat(pitcherData.hr9) || 1) * 20 + (parseFloat(pitcherData.lobPercent) || 70) * 0.5).toFixed(3);
+  
+  const radarData = [
+    { stat: "Stuff", value: parseFloat(pitcherData.stuff) || 50 },
+    { stat: "Movement", value: parseFloat(pitcherData.movement) || 50 },
+    { stat: "Control", value: parseFloat(pitcherData.control) || 50 },
+    { stat: "Velocity", value: parseFloat(pitcherData.velocity) || 90 }
   ];
 
-  // Pitcher Stats Radar Chart
-  const pitcherData = [
-    { stat: "FIP", value: parseFloat(playerData.fip) || 4.00 },
-    { stat: "WHIP", value: parseFloat(playerData.whip) || 1.30 },
-    { stat: "HR/9", value: parseFloat(playerData.hr9) || 1.2 },
-    { stat: "K%", value: parseFloat(playerData.kRate) || 22 },
-    { stat: "BB%", value: parseFloat(playerData.bbRate) || 8 },
+  const scatterData = [
+    { x: parseFloat(iHB), y: parseFloat(iVB), pitch: "Fastball" },
+    { x: parseFloat(iHB) * 0.9, y: parseFloat(iVB) * 1.1, pitch: "Slider" },
+    { x: parseFloat(iHB) * 1.2, y: parseFloat(iVB) * 0.8, pitch: "Changeup" }
   ];
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold text-center mb-4">Advanced Stats Visualizer</h2>
-
-      {/* Input Form */}
+      <h2 className="text-2xl font-bold text-center mb-4">Advanced Pitching Stats Visualizer</h2>
+      
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <input
-          type="text"
-          name="name"
-          value={playerData.name}
-          onChange={handleChange}
-          placeholder="Player Name"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="text"
-          name="team"
-          value={playerData.team}
-          onChange={handleChange}
-          placeholder="Team Name"
-          className="p-2 border rounded-md w-full"
-        />
+        <input type="text" name="name" value={pitcherData.name} onChange={handleChange} placeholder="Pitcher Name" className="p-2 border rounded-md w-full" />
+        <input type="text" name="team" value={pitcherData.team} onChange={handleChange} placeholder="Team Name" className="p-2 border rounded-md w-full" />
+        <input type="number" name="stuff" value={pitcherData.stuff} onChange={handleChange} placeholder="Stuff" className="p-2 border rounded-md w-full" />
+        <input type="number" name="movement" value={pitcherData.movement} onChange={handleChange} placeholder="Movement" className="p-2 border rounded-md w-full" />
+        <input type="number" name="control" value={pitcherData.control} onChange={handleChange} placeholder="Control" className="p-2 border rounded-md w-full" />
+        <input type="number" name="velocity" value={pitcherData.velocity} onChange={handleChange} placeholder="Velocity (MPH)" className="p-2 border rounded-md w-full" />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-6">
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-center mb-2">Pitching Radar Chart</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="stat" />
+              <PolarRadiusAxis />
+              <Radar name={pitcherData.name || "Pitcher"} dataKey="value" stroke="#ff7300" fill="#ff7300" fillOpacity={0.6} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-center mb-2">Pitch Break Scatter Plot</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <ScatterChart>
+              <CartesianGrid />
+              <XAxis type="number" dataKey="x" name="Horizontal Break" />
+              <YAxis type="number" dataKey="y" name="Vertical Break" />
+              <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+              <Scatter name="Pitches" data={scatterData} fill="#8884d8" />
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* Hitting Inputs */}
-      <h3 className="text-lg font-semibold text-center mb-2">Hitting Stats</h3>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <input
-          type="number"
-          step="0.001"
-          name="obp"
-          value={playerData.obp}
-          onChange={handleChange}
-          placeholder="OBP (e.g., .360)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.1"
-          name="war"
-          value={playerData.war}
-          onChange={handleChange}
-          placeholder="WAR (e.g., 3.2)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.01"
-          name="iso"
-          value={playerData.iso}
-          onChange={handleChange}
-          placeholder="ISO (e.g., .200)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          name="opsPlus"
-          value={playerData.opsPlus}
-          onChange={handleChange}
-          placeholder="OPS+ (e.g., 125)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.001"
-          name="babip"
-          value={playerData.babip}
-          onChange={handleChange}
-          placeholder="BABIP (e.g., .310)"
-          className="p-2 border rounded-md w-full"
-        />
-      </div>
-
-      {/* Pitching Inputs */}
-      <h3 className="text-lg font-semibold text-center mb-2">Pitching Stats</h3>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <input
-          type="number"
-          step="0.01"
-          name="fip"
-          value={playerData.fip}
-          onChange={handleChange}
-          placeholder="FIP (e.g., 3.80)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.01"
-          name="whip"
-          value={playerData.whip}
-          onChange={handleChange}
-          placeholder="WHIP (e.g., 1.10)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.1"
-          name="hr9"
-          value={playerData.hr9}
-          onChange={handleChange}
-          placeholder="HR/9 (e.g., 1.2)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.1"
-          name="kRate"
-          value={playerData.kRate}
-          onChange={handleChange}
-          placeholder="K% (e.g., 25)"
-          className="p-2 border rounded-md w-full"
-        />
-        <input
-          type="number"
-          step="0.1"
-          name="bbRate"
-          value={playerData.bbRate}
-          onChange={handleChange}
-          placeholder="BB% (e.g., 8)"
-          className="p-2 border rounded-md w-full"
-        />
-      </div>
-
-      {/* Generated xERA */}
-      <div className="p-4 bg-gray-100 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-center mb-2">Generated xERA</h3>
-        <p className="text-3xl text-center font-bold">{xERA.toFixed(2)}</p>
-      </div>
-
-      {/* Hitter Visualization */}
-      <div className="p-4 bg-gray-100 rounded-lg shadow-md mt-6">
-        <h3 className="text-lg font-semibold text-center mb-2">Hitter Performance Visualization</h3>
-        <ResponsiveContainer width="100%" height={350}>
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={hitterData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="stat" />
-            <PolarRadiusAxis />
-            <Tooltip />
-            <Radar name={playerData.name || "Hitter"} dataKey="value" stroke="#ff7300" fill="#ff7300" fillOpacity={0.6} />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Pitcher Visualization */}
-      <div className="p-4 bg-gray-100 rounded-lg shadow-md mt-6">
-        <h3 className="text-lg font-semibold text-center mb-2">Pitcher Performance Visualization</h3>
-        <ResponsiveContainer width="100%" height={350}>
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={pitcherData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="stat" />
-            <PolarRadiusAxis />
-            <Tooltip />
-            <Radar name={playerData.name || "Pitcher"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-          </RadarChart>
-        </ResponsiveContainer>
+      <div className="mt-6 text-center">
+        <h3 className="text-xl font-semibold">{pitcherData.name} - {pitcherData.team}</h3>
+        <p className="mt-2 text-gray-700">xERA: {xERA} | Whiff%: {whiffRate}% | xwOBA Contact: {xwOBAContact}</p>
       </div>
     </div>
   );
