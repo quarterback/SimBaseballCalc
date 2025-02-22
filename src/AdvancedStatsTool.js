@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const AdvancedStatsTool = () => {
   const [mode, setMode] = useState("hitting"); // Toggle between hitting and pitching
@@ -12,12 +12,17 @@ const AdvancedStatsTool = () => {
     iso: "",
     opsPlus: "",
     babip: "",
+    woba: "",
     // Pitching Stats
     stuff: "",
     movement: "",
     control: "",
     velocity: "",
-    gbPercent: ""
+    gbPercent: "",
+    era: "",
+    fip: "",
+    kPer9: "",
+    bbPer9: ""
   });
 
   // Handle input changes
@@ -34,13 +39,15 @@ const AdvancedStatsTool = () => {
         { stat: "xOBP", value: (parseFloat(playerData.obp) * 0.98).toFixed(3) || 0 },
         { stat: "xISO", value: (parseFloat(playerData.iso) * 1.05).toFixed(3) || 0 },
         { stat: "xBABIP", value: (parseFloat(playerData.babip) * 0.97).toFixed(3) || 0 },
+        { stat: "xWOBA", value: (parseFloat(playerData.woba) * 1.02).toFixed(3) || 0 },
         { stat: "Adjusted WAR", value: (parseFloat(playerData.war) * 1.1).toFixed(2) || 0 },
       ]
     : [
-        { stat: "xERA", value: (5 - parseFloat(playerData.movement) * 0.1).toFixed(2) || 0 },
-        { stat: "xFIP", value: (5 - parseFloat(playerData.control) * 0.09).toFixed(2) || 0 },
+        { stat: "xERA", value: (parseFloat(playerData.era) * 0.9 + parseFloat(playerData.movement) * 0.05).toFixed(2) || 0 },
+        { stat: "xFIP", value: (parseFloat(playerData.fip) * 0.95 + parseFloat(playerData.control) * 0.03).toFixed(2) || 0 },
         { stat: "xGB%", value: (parseFloat(playerData.gbPercent) * 1.02).toFixed(1) || 0 },
         { stat: "Stuff+", value: (parseFloat(playerData.stuff) * 1.1).toFixed(1) || 0 },
+        { stat: "K/9+", value: (parseFloat(playerData.kPer9) * 1.05).toFixed(2) || 0 },
       ];
 
   // Formatting primary data for visualization
@@ -78,18 +85,12 @@ const AdvancedStatsTool = () => {
         {mode === "hitting" ? (
           <>
             <input type="number" name="obp" value={playerData.obp} onChange={handleChange} placeholder="OBP (e.g., .360)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="war" value={playerData.war} onChange={handleChange} placeholder="WAR (e.g., 3.2)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="iso" value={playerData.iso} onChange={handleChange} placeholder="ISO (e.g., .200)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="opsPlus" value={playerData.opsPlus} onChange={handleChange} placeholder="OPS+ (e.g., 125)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="babip" value={playerData.babip} onChange={handleChange} placeholder="BABIP (e.g., .310)" className="p-2 border rounded-md w-full" />
+            <input type="number" name="woba" value={playerData.woba} onChange={handleChange} placeholder="wOBA (e.g., .350)" className="p-2 border rounded-md w-full" />
           </>
         ) : (
           <>
-            <input type="number" name="stuff" value={playerData.stuff} onChange={handleChange} placeholder="Stuff (e.g., 65)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="movement" value={playerData.movement} onChange={handleChange} placeholder="Movement (e.g., 60)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="control" value={playerData.control} onChange={handleChange} placeholder="Control (e.g., 55)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="velocity" value={playerData.velocity} onChange={handleChange} placeholder="Velocity (e.g., 95)" className="p-2 border rounded-md w-full" />
-            <input type="number" name="gbPercent" value={playerData.gbPercent} onChange={handleChange} placeholder="GB% (e.g., 50.0)" className="p-2 border rounded-md w-full" />
+            <input type="number" name="era" value={playerData.era} onChange={handleChange} placeholder="ERA (e.g., 3.20)" className="p-2 border rounded-md w-full" />
+            <input type="number" name="fip" value={playerData.fip} onChange={handleChange} placeholder="FIP (e.g., 3.50)" className="p-2 border rounded-md w-full" />
           </>
         )}
       </div>
