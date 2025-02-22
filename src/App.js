@@ -5,6 +5,7 @@ import SeasonDFS from './SeasonDFS';
 import DFSAI from './DFSAI';
 import FieldingRunValueCalculator from './FieldingRunValueCalculator';
 import StatcastHittingTool from './StatcastHittingTool';
+import StatcastPitchingTool from './StatcastPitchingTool';
 import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc';
 import BeatTheStreak from './BeatTheStreak';
@@ -44,6 +45,12 @@ function App() {
               HIT
             </Link>
             <Link 
+              to="/pitch" 
+              className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              PITCH
+            </Link>
+            <Link 
               to="/frvc" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -76,6 +83,7 @@ function App() {
               <Route path="/season-dfs" element={<SeasonDFS />} />
               <Route path="/frvc" element={<FieldingRunValueCalculator />} />
               <Route path="/hit" element={<StatcastHittingTool />} />
+              <Route path="/pitch" element={<StatcastPitchingTool />} />
               <Route path="/dfs-ai" element={<DFSAI />} />
               <Route path="/market-calc" element={<MarketCalc />} />
               <Route path="/fan-interest" element={<FanInterestCalc />} />
