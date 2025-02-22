@@ -18,7 +18,7 @@ const StatcastHittingTool = () => {
     const BABIP = parseFloat(player.BABIP) || 0.300;
     const HR_PA = parseFloat(player.HR) / parseFloat(player.PA) || 0.040;
     const BB_PCT = parseFloat(player['BB%'] || player.BB_PCT) || 8.0;
-    const K_PCT = parseFloat(player['K%'] || player.K_PCT) || 22.0;
+    const K_PCT = parseFloat(player['SO%'] || player.K_PCT) || 22.0;
     const OPS_PLUS = parseFloat(player['OPS+'] || player.OPS_PLUS) || 100;
     const WRC_PLUS = parseFloat(player['wRC+'] || player.wRC_PLUS) || 100;
     const CONTACT = parseFloat(player.Contact) || 50;
