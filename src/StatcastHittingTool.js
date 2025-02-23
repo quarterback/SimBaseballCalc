@@ -62,8 +62,8 @@ const calculateAdvancedStats = (player) => {
     // Contact Metrics
     BIP_PCT: ((BIP / PA) * 100).toFixed(1),
     Contact_Plus: (
-      ((CONTACT - 50) * 1.5) + 
-      ((100 - BB_PCT - SO_PCT) * 0.5)
+    ((CONTACT - 50) * 1.5) + 
+    ((100 - SO_PCT) * 0.75)
     ).toFixed(1),
     
     // Plate Discipline
