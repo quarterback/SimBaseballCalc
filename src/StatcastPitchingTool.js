@@ -324,7 +324,9 @@ const calculateAdvancedStats = (pitcher) => {
                   <td className="px-6 py-4 text-right">{pitcher.SwStr}</td>
                   <td className="px-6 py-4 text-right">{pitcher.TrueKBB}</td>
                   <td className="px-6 py-4 text-right">{pitcher.LIE}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.DQS}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.ESC_PCT}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.K_IP}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.K_BF_PCT}</td>
                 </tr>
               ))}
             </tbody>
