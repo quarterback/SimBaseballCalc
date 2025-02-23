@@ -30,130 +30,76 @@ const REQUIRED_HEADERS = [
   'STM'          // instead of Stamina
 ];
 
-    const calculateAdvancedStats = (pitcher) => {
-    const isSP = pitcher.POS.includes('SP') || pitcher.POS.includes('SP');  // More flexible position check
-    
-    // OOTP Stats - using exact header names
-    const Team = pitcher.TM;    // Add this line to capture team
-    const ERA = parseFloat(pitcher.ERA) || 4.50;
-    const FIP = parseFloat(pitcher.FIP) || 4.50;
-    const BABIP = parseFloat(pitcher.BABIP) || 0.300;
-    const K_PCT = parseFloat(pitcher['K%']) || 22.0;
-    const BB_PCT = parseFloat(pitcher['BB%']) || 8.0;
-    const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
-    const H_9 = parseFloat(pitcher['H/9']) || 9.0;
-    const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
-    const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;  // Changed from GB% to GO%
-    const IP = parseFloat(pitcher.IP) || 0;
+const calculateAdvancedStats = (pitcher) => {
+  const isSP = pitcher.POS === 'SP';
 
-    // OOTP Ratings
-    const STUFF = parseFloat(pitcher.STU) || 50;
-    const MOVEMENT = parseFloat(pitcher.MOV) || 50;
-    const CONTROL = parseFloat(pitcher.CON) || 50;
-    const STAMINA = parseFloat(pitcher.STM) || 50;
+  // OOTP Stats - Using exact header names
+  const ERA = parseFloat(pitcher.ERA) || 4.50;
+  const FIP = parseFloat(pitcher.FIP) || 4.50;
+  const BABIP = parseFloat(pitcher.BABIP) || 0.300;
+  const K_PCT = parseFloat(pitcher['K%']) || 22.0;
+  const BB_PCT = parseFloat(pitcher['BB%']) || 8.0;
+  const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
+  const H_9 = parseFloat(pitcher['H/9']) || 9.0;
+  const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
+  const GB_PCT = parseFloat(pitcher['GB%']) || 42.0;
+  const IP = parseFloat(pitcher.IP) || 0;
+  const BF = parseFloat(pitcher.BF) || (IP * 3 + H_9 * (IP / 9)); // Approximate if missing
+  const BB = (BB_PCT / 100) * BF;
+  const K = (K_PCT / 100) * BF;
+  const IBB = parseFloat(pitcher.IBB) || 0;
+  const WPA = parseFloat(pitcher.WPA) || 0;
+  const pLI = parseFloat(pitcher.pLI) || 1;
+  const GS = parseFloat(pitcher.GS) || (isSP ? 10 : 0);
+  const ER = (ERA / 9) * IP;
+  const H = (H_9 / 9) * IP;
 
-    // Expected Stats
-    const xERA = ((ERA * 0.6) + (FIP * 0.3) + (BABIP * 10 * 0.1)).toFixed(2);
-    const xFIP = ((FIP * 0.85) + (HR_9 * 0.15)).toFixed(2);
+  // OOTP Ratings
+  const STUFF = parseFloat(pitcher.Stuff) || 50;
+  const MOVEMENT = parseFloat(pitcher.Movement) || 50;
+  const CONTROL = parseFloat(pitcher.Control) || 50;
+  const STAMINA = parseFloat(pitcher.Stamina) || 50;
 
-    // New Advanced Metrics
-    const deceptionRating = (
-      (MOVEMENT * 0.4) + 
-      ((1 - BABIP) * 100 * 0.3) + 
-      (K_PCT * 0.3)
-    ).toFixed(1);
+  // Expected Stats
+  const xERA = ((ERA * 0.6) + (FIP * 0.3) + (BABIP * 10 * 0.1)).toFixed(2);
+  const xFIP = ((FIP * 0.85) + (HR_9 * 0.15)).toFixed(2);
 
-    const staminaEfficiency = isSP 
-      ? (100 - ((ERA - (STAMINA/20)) * 10)).toFixed(1)
-      : (100 - (ERA * 12) + (STUFF * 0.2)).toFixed(1);
+  // **New Advanced Metrics**
+  const DOMS = ((K_PCT - BB_PCT) + ((K / 9) * 1.5)).toFixed(1);
 
-    const pitchEconomy = (
-      (GB_PCT * 0.4) + 
-      ((100 - BB_PCT) * 0.4) + 
-      (K_PCT * 0.2)
-    ).toFixed(1);
+  const ChaseEfficiency = ((K / (K + BB)) * 100).toFixed(1);
 
-    const highLeverageIndex = (
-      (LOB_PCT * 0.4) + 
-      (K_PCT * 0.4) + 
-      ((20 - HR_9) * 3)
-    ).toFixed(1);
+  const tWHIP = (((BB - IBB) + H) / IP).toFixed(2);
 
-    const consistencyRating = (
-      (CONTROL * 0.4) + 
-      ((100 - BB_PCT) * 0.4) + 
-      ((10 - HR_9) * 2)
-    ).toFixed(1);
+  const HLPI = ((WPA * 50) + (LOB_PCT * 0.5) - ((BB / 9) * 5)).toFixed(1);
 
-    const arsenalEffectiveness = (
-      (STUFF * 0.3) + 
-      (MOVEMENT * 0.3) + 
-      (K_PCT * 0.2) + 
-      (GB_PCT * 0.2)
-    ).toFixed(1);
+  const PutawayRate = ((K / (K + (BF - K - BB))) * 100).toFixed(1);
 
-    const contactManagement = (
-      ((20 - H_9) * 3) + 
-      ((1 - BABIP) * 100) + 
-      (GB_PCT * 0.5)
-    ).toFixed(1);
+  const SwStr = ((K / (BF - BB)) * 100).toFixed(1);
 
-    const durabilityScore = isSP
-      ? (STAMINA * 0.5) + (CONTROL * 0.3) + ((100 - BB_PCT) * 0.2)
-      : (STUFF * 0.4) + (CONTROL * 0.3) + ((100 - BB_PCT) * 0.3);
+  const TrueKBB = ((K_PCT - (BB_PCT - (IBB / BF) * 100)) + (pLI * 5)).toFixed(1);
 
-    const overallEffectiveness = (
-      (100 - parseFloat(xERA) * 10) * 0.3 +
-      parseFloat(arsenalEffectiveness) * 0.2 +
-      parseFloat(contactManagement) * 0.2 +
-      parseFloat(consistencyRating) * 0.2 +
-      parseFloat(durabilityScore) * 0.1
-    ).toFixed(1);
+  const LIE = ((ERA * 0.6) + (LOB_PCT * 0.4)).toFixed(1);
 
-      const exportToCSV = () => {
-  if (pitchers.length === 0) return;
+  const DQS = ((ER >= 5 && IP < 5 ? 1 : 0) / GS * 100).toFixed(1);
 
-const headers = [
-  'Name', 'TM', 'Role', 'IP', 'xERA', 'xFIP', 'Deception', 
-  'StaminaEfficiency', 'PitchEconomy', 'HighLeverage', 'Consistency', 
-  'ArsenalScore', 'ContactQuality', 'Durability', 'Effectiveness'
-];
-
-  const csvContent = [
-    headers.join(','),
-    ...filteredPitchers.map(pitcher => headers.map(header => 
-      (pitcher[header] || '').toString().replace(/,/g, ';')
-    ).join(','))
-  ].join('\n');
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', 'advanced_pitching_stats.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-      
-     return {
-      ...pitcher,
-      Team,                    // Add this to include team in output
-      Role: pitcher.POS,
-      IP,
-      xERA,
-      xFIP,
-      Deception: deceptionRating,
-      StaminaEfficiency: staminaEfficiency,
-      PitchEconomy: pitchEconomy,
-      HighLeverage: highLeverageIndex,
-      Consistency: consistencyRating,
-      ArsenalScore: arsenalEffectiveness,
-      ContactQuality: contactManagement,
-      Durability: durabilityScore.toFixed(1),
-      Effectiveness: overallEffectiveness
-    };
+  return {
+    ...pitcher,
+    Role: pitcher.POS,
+    IP,
+    xERA,
+    xFIP,
+    DOMS,
+    ChaseEfficiency,
+    tWHIP,
+    HLPI,
+    PutawayRate,
+    SwStr,
+    TrueKBB,
+    LIE,
+    DQS
   };
+};
 
   const processCSV = async (file) => {
     setLoading(true);
@@ -275,78 +221,76 @@ const filteredPitchers = pitchers.filter(pitcher => {
       {loading ? (
         <div className="text-center">Loading...</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-left cursor-pointer" onClick={() => handleSort('Name')}>
-                  Name {sortField === 'Name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('Role')}>
-                  Role {sortField === 'Role' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('IP')}>
-                  IP {sortField === 'IP' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xERA')}>
-                  xERA {sortField === 'xERA' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xFIP')}>
-                  xFIP {sortField === 'xFIP' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('Deception')}>
-                  Deception {sortField === 'Deception' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('StaminaEfficiency')}>
-                  Stamina Eff {sortField === 'StaminaEfficiency' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('PitchEconomy')}>
-                  Economy {sortField === 'PitchEconomy' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('HighLeverage')}>
-                  High Lev {sortField === 'HighLeverage' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('Consistency')}>
-                  Consist {sortField === 'Consistency' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ArsenalScore')}>
-                  Arsenal {sortField === 'ArsenalScore' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ContactQuality')}>
-                  Contact {sortField === 'ContactQuality' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('Durability')}>
-                  Durability {sortField === 'Durability' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('Effectiveness')}>
-                  Effect {sortField === 'Effectiveness' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPitchers.map((pitcher, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="px-6 py-4 whitespace-nowrap">{pitcher.Name}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.Role}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.IP}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.xERA}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.xFIP}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.Deception}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.StaminaEfficiency}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.PitchEconomy}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.HighLeverage}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.Consistency}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.ArsenalScore}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.ContactQuality}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.Durability}</td>
-                  <td className="px-6 py-4 text-right">{pitcher.Effectiveness}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+<div className="overflow-x-auto">
+  <table className="min-w-full bg-white">
+    <thead className="bg-gray-50">
+      <tr>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-left cursor-pointer" onClick={() => handleSort('Name')}>
+          Name {sortField === 'Name' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('POS')}>
+          POS {sortField === 'POS' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('IP')}>
+          IP {sortField === 'IP' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xERA')}>
+          xERA {sortField === 'xERA' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xFIP')}>
+          xFIP {sortField === 'xFIP' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DOMS')}>
+          DOMS {sortField === 'DOMS' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ChaseEfficiency')}>
+          ChE% {sortField === 'ChaseEfficiency' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('tWHIP')}>
+          True WHIP {sortField === 'tWHIP' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('HLPI')}>
+          High Lev {sortField === 'HLPI' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('PutawayRate')}>
+          PWR% {sortField === 'PutawayRate' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('SwStr')}>
+          SwStr% {sortField === 'SwStr' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('TrueKBB')}>
+          tK-BB% {sortField === 'TrueKBB' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('LIE')}>
+          LIE {sortField === 'LIE' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+        <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DQS')}>
+          DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓')}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredPitchers.map((pitcher, idx) => (
+        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+          <td className="px-6 py-4 whitespace-nowrap">{pitcher.Name}</td>
+          <td className="px-6 py-4 text-right">{pitcher.POS}</td>
+          <td className="px-6 py-4 text-right">{pitcher.IP}</td>
+          <td className="px-6 py-4 text-right">{pitcher.xERA}</td>
+          <td className="px-6 py-4 text-right">{pitcher.xFIP}</td>
+          <td className="px-6 py-4 text-right">{pitcher.DOMS}</td>
+          <td className="px-6 py-4 text-right">{pitcher.ChaseEfficiency}</td>
+          <td className="px-6 py-4 text-right">{pitcher.tWHIP}</td>
+          <td className="px-6 py-4 text-right">{pitcher.HLPI}</td>
+          <td className="px-6 py-4 text-right">{pitcher.PutawayRate}</td>
+          <td className="px-6 py-4 text-right">{pitcher.SwStr}</td>
+          <td className="px-6 py-4 text-right">{pitcher.TrueKBB}</td>
+          <td className="px-6 py-4 text-right">{pitcher.LIE}</td>
+          <td className="px-6 py-4 text-right">{pitcher.DQS}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
   );
 };
 
