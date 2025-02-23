@@ -10,30 +10,31 @@ const StatcastPitchingTool = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
 
-  const REQUIRED_HEADERS = [
-    'Name',
-    'Team',
-    'POS',
-    'IP',
-    'ERA',
-    'FIP',
-    'BABIP',
-    'K%',
-    'BB%',
-    'HR/9',
-    'H/9',
-    'LOB%',
-    'GB%',
-    'Stuff',
-    'Movement',
-    'Control',
-    'Stamina'
-  ];
+const REQUIRED_HEADERS = [
+  'Name',
+  'TM',          // instead of Team
+  'POS',
+  'IP',
+  'ERA',
+  'FIP',
+  'BABIP',
+  'K%',
+  'BB%',
+  'HR/9',
+  'H/9',
+  'LOB%',
+  'GO%',         // instead of GB%
+  'STU',         // instead of Stuff
+  'MOV',         // instead of Movement
+  'CON',         // instead of Control
+  'STM'          // instead of Stamina
+];
 
-  const calculateAdvancedStats = (pitcher) => {
-    const isSP = pitcher.POS === 'SP';
+    const calculateAdvancedStats = (pitcher) => {
+    const isSP = pitcher.POS.includes('SP') || pitcher.POS.includes('SP');  // More flexible position check
     
     // OOTP Stats - using exact header names
+    const Team = pitcher.TM;    // Add this line to capture team
     const ERA = parseFloat(pitcher.ERA) || 4.50;
     const FIP = parseFloat(pitcher.FIP) || 4.50;
     const BABIP = parseFloat(pitcher.BABIP) || 0.300;
@@ -42,14 +43,14 @@ const StatcastPitchingTool = () => {
     const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
     const H_9 = parseFloat(pitcher['H/9']) || 9.0;
     const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
-    const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;
+    const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;  // Changed from GB% to GO%
     const IP = parseFloat(pitcher.IP) || 0;
 
     // OOTP Ratings
-    const STUFF = parseFloat(pitcher.Stuff) || 50;
-    const MOVEMENT = parseFloat(pitcher.Movement) || 50;
-    const CONTROL = parseFloat(pitcher.Control) || 50;
-    const STAMINA = parseFloat(pitcher.Stamina) || 50;
+    const STUFF = parseFloat(pitcher.STU) || 50;
+    const MOVEMENT = parseFloat(pitcher.MOV) || 50;
+    const CONTROL = parseFloat(pitcher.CON) || 50;
+    const STAMINA = parseFloat(pitcher.STM) || 50;
 
     // Expected Stats
     const xERA = ((ERA * 0.6) + (FIP * 0.3) + (BABIP * 10 * 0.1)).toFixed(2);
@@ -109,8 +110,9 @@ const StatcastPitchingTool = () => {
       parseFloat(durabilityScore) * 0.1
     ).toFixed(1);
 
-    return {
+     return {
       ...pitcher,
+      Team,                    // Add this to include team in output
       Role: pitcher.POS,
       IP,
       xERA,
