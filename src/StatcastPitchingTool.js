@@ -163,6 +163,8 @@ const StatcastPitchingTool = () => {
   };
 
   const exportToCSV = () => {
+    if (filteredPitchers.length === 0) return;
+
     const headers = Object.keys(filteredPitchers[0]).join(',');
     const csvContent = [
       headers,
@@ -242,7 +244,72 @@ const StatcastPitchingTool = () => {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white">
-            {/* Rest of the table rendering code remains the same as in the original */}
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-left cursor-pointer" onClick={() => handleSort('Name')}>
+                  Name {sortField === 'Name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('POS')}>
+                  POS {sortField === 'POS' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('IP')}>
+                  IP {sortField === 'IP' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xERA')}>
+                  xERA {sortField === 'xERA' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('xFIP')}>
+                  xFIP {sortField === 'xFIP' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DOMS')}>
+                  DOMS {sortField === 'DOMS' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ChaseEfficiency')}>
+                  ChE% {sortField === 'ChaseEfficiency' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('tWHIP')}>
+                  True WHIP {sortField === 'tWHIP' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('HLPI')}>
+                  High Lev {sortField === 'HLPI' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('PutawayRate')}>
+                  PWR% {sortField === 'PutawayRate' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('SwStr')}>
+                  SwStr% {sortField === 'SwStr' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('TrueKBB')}>
+                  tK-BB% {sortField === 'TrueKBB' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('LIE')}>
+                  LIE {sortField === 'LIE' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DQS')}>
+                  DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPitchers.map((pitcher, idx) => (
+                <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                  <td className="px-6 py-4 whitespace-nowrap">{pitcher.Name}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.POS}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.IP}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.xERA}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.xFIP}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.DOMS}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.ChaseEfficiency}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.tWHIP}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.HLPI}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.PutawayRate}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.SwStr}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.TrueKBB}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.LIE}</td>
+                  <td className="px-6 py-4 text-right">{pitcher.DQS}</td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}
