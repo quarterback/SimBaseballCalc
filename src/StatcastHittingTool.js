@@ -13,43 +13,56 @@ const calculateAdvancedStats = (player) => {
   const AVG = parseFloat(player.AVG) || 0.260;
   const OBP = parseFloat(player.OBP) || 0.330;
   const SLG = parseFloat(player.SLG) || 0.430;
-  const ISO = SLG - AVG;  // Now computed here instead of coming from CSV
   const BABIP = parseFloat(player.BABIP) || 0.300;
-  const HR = parseFloat(player.HR) || 0;
-  const PA = parseFloat(player.PA) || 500;
-  const BB = parseFloat(player.BB) || 50;
-  const HBP = parseFloat(player.HBP) || 5;
-  const AB = parseFloat(player.AB) || 400;
-  const SF = parseFloat(player.SF) || 4;
-  const RBI = parseFloat(player.RBI) || 60;
-  const R = parseFloat(player.R) || 70;
-  const SB = parseFloat(player.SB) || 10;
+  
+  const HR = parseInt(player.HR) || 0;
+  const PA = Math.max(parseInt(player.PA) || 1, 1); // Ensure PA is at least 1
+  const BB = parseInt(player.BB) || 0;
+  const HBP = parseInt(player.HP) || 0;
+  const AB = parseInt(player.AB) || PA - BB - HBP; // If AB missing, estimate
+  const SF = parseInt(player.SF) || 0;
+  const RBI = parseInt(player.RBI) || 0;
+  const R = parseInt(player.R) || 0;
+  const SB = parseInt(player.SB) || 0;
   const WPA = parseFloat(player.WPA) || 0;
-  const OPS = OBP + SLG; // No longer pulled from the CSV
-  const BIP = AB - HR - SF; // Balls in Play (estimated)
+
+  const Singles = (parseInt(player['1B']) || 0);
+  const Doubles = (parseInt(player['2B']) || 0);
+  const Triples = (parseInt(player['3B']) || 0);
+
+  // Fixing ISO Calculation
+  const ISO = Math.max(0, SLG - AVG);
+
+  // Fixing Balls in Play (BIP) Calculation
+  const BIP = Math.max(AB - HR - SF - BB - HBP, 1); // Avoid division by zero
 
   return {
     ...player,
+    ISO: ISO.toFixed(3),
+    BIP,
     xBA: ((BABIP * 0.85) + (AVG * 0.15)).toFixed(3),
     xSLG: ((SLG * 0.9) + (ISO * 0.1)).toFixed(3),
     xWOBA: ((OBP * 0.6) + (SLG * 0.3) + ((HR / PA) * 0.1)).toFixed(3),
-    BIP_PCT: (100 - ((BB / PA) * 100) - ((player['SO%'] || player.K_PCT) || 22.0)).toFixed(1),
-    xOPS_PLUS: ((parseFloat(player['OPS+']) * 0.9) + (ISO * 100 * 0.1)).toFixed(1),
-    Contact_Plus: (((parseFloat(player.Contact) - 50) * 1.5) + ((100 - ((BB / PA) * 100) - ((player['SO%'] || player.K_PCT) || 22.0) - 70) * 2)).toFixed(1),
-    Chase_PCT: ((parseFloat(player.Eye) * 0.4) - ((player['SO%'] || player.K_PCT) * 0.6)).toFixed(1),
-    True_ISO: ((ISO * 0.8) + (parseFloat(player.Power) / 100 * 0.2)).toFixed(3),
-    Plate_Skills: ((OBP * 0.4) + (parseFloat(player.Eye) / 100 * 0.3) + ((100 - ((player['SO%'] || player.K_PCT) || 22.0)) / 100 * 0.3)).toFixed(3),
-    Barrel_PCT: ((HR + ((parseFloat(player['2B']) || 0) + (parseFloat(player['3B']) || 0)) * 0.5) / PA * 100).toFixed(1),
+    BIP_PCT: (((BIP / PA) * 100) || 0).toFixed(1),
+    xOPS_PLUS: (((parseFloat(player['OPS+']) || 100) * 0.9) + (ISO * 100 * 0.1)).toFixed(1),
+    Contact_Plus: (((parseFloat(player.CON) - 50) * 1.5) + ((100 - ((BB / PA) * 100) - ((parseFloat(player['SO%']) || 22.0) - 70) * 2))).toFixed(1),
+    Chase_PCT: ((parseFloat(player.EYE) * 0.4) - ((parseFloat(player['SO%']) || 22.0) * 0.6)).toFixed(1),
+    True_ISO: ((ISO * 0.8) + ((parseFloat(player.POW) || 50) / 100 * 0.2)).toFixed(3),
+    Plate_Skills: ((OBP * 0.4) + ((parseFloat(player.EYE) || 50) / 100 * 0.3) + (((100 - ((parseFloat(player['SO%']) || 22.0))) / 100) * 0.3)).toFixed(3),
+    
+    // Fixing Barrel% Calculation
+    Barrel_PCT: (((HR + (Doubles + Triples) * 0.5) / PA) * 100).toFixed(1),
+
     xHR_PCT: ((HR / PA) * 1.15 * 100).toFixed(1),
     RPE: ((RBI + R - HR) / PA).toFixed(3),
-    True_wOBA: (((0.7 * BB) + (0.9 * HBP) + (0.88 * (parseFloat(player['1B']) || 0)) + 
-                 (1.25 * (parseFloat(player['2B']) || 0)) + (1.6 * (parseFloat(player['3B']) || 0)) + 
-                 (2.1 * HR)) / (AB + BB + SF + HBP)).toFixed(3),
-    Clutch_Index: ((WPA * 100) / PA).toFixed(2), // Now based on available stats only
-    Power_Speed_Number: ((2 * HR * SB) / (HR + SB)).toFixed(2)
+
+    // Fixing True wOBA Calculation
+    True_wOBA: (((0.7 * BB) + (0.9 * HBP) + (0.88 * Singles) + (1.25 * Doubles) + (1.6 * Triples) + (2.1 * HR)) / (AB + BB + SF + HBP)).toFixed(3),
+    
+    Clutch_Index: (((WPA * 100) / PA) || 0).toFixed(2), 
+    Power_Speed_Number: ((2 * HR * SB) / Math.max(HR + SB, 1)).toFixed(2)
   };
 };
-
 
 
   const processCSV = async (file) => {
