@@ -15,6 +15,9 @@ const calculateAdvancedStats = (player) => {
   const OBP = parseFloat(player.OBP) || 0.330;
   const SLG = parseFloat(player.SLG) || 0.430;
   const BABIP = parseFloat(player.BABIP) || 0.300;
+  const OPS = OBP + SLG;
+  const LEAGUE_OPS = 0.720; // League average OPS baseline
+  const OPS_PLUS = ((OPS / LEAGUE_OPS) * 100).toFixed(1);
   
   // Counting Stats
   const HR = parseInt(player.HR) || 0;
@@ -53,6 +56,7 @@ const calculateAdvancedStats = (player) => {
     xBA: ((BABIP * 0.85) + (AVG * 0.15)).toFixed(3),
     xSLG: ((SLG * 0.9) + (ISO * 0.1)).toFixed(3),
     xWOBA: ((OBP * 0.6) + (SLG * 0.3) + ((HR / Math.max(PA, 1)) * 0.1)).toFixed(3),
+    xOPS_PLUS: ((parseFloat(OPS_PLUS) * 0.9) + (ISO * 100 * 0.1)).toFixed(1),
     
     // Contact Metrics
     BIP_PCT: ((BIP / Math.max(PA, 1)) * 100).toFixed(1),
@@ -62,10 +66,7 @@ const calculateAdvancedStats = (player) => {
     ).toFixed(1),
     
     // Plate Discipline
-    Chase_PCT: (
-      (EYE * 0.4) - 
-      (SO_PCT * 0.6)
-    ).toFixed(1),
+    Chase_PCT: ((EYE * 0.4) - (SO_PCT * 0.6)).toFixed(1)
     
     // Power Metrics
     True_ISO: (
