@@ -28,6 +28,8 @@ const StatcastPitchingTool = () => {
   'MOV',
   'CON',
   'STM',
+  'IR',
+  'IRS',
   'BF',
   'IBB',
   'WPA',
@@ -62,6 +64,10 @@ const calculateAdvancedStats = (pitcher) => {
   const ER = (ERA / 9) * IP;
   const H = (H_9 / 9) * IP;
 
+  // New Stats: Inherited Runners & Escape Rate
+  const IR = parseInt(pitcher.IR) || 0;
+  const IRS = parseInt(pitcher.IRS) || 0; 
+
   // OOTP Ratings
   const STUFF = parseFloat(pitcher.STU) || 50;  // Changed from Stuff to STU
   const MOVEMENT = parseFloat(pitcher.MOV) || 50;  // Changed from Movement to MOV
@@ -81,7 +87,9 @@ const calculateAdvancedStats = (pitcher) => {
     const SwStr = ((K / (BF - BB)) * 100).toFixed(1);
     const TrueKBB = ((K_PCT - BB_PCT) + (pLI * 5)).toFixed(1);
     const LIE = ((ERA * 0.6) + (LOB_PCT * 0.4)).toFixed(1);
-    const DQS = (GS > 0 ? ((IP / GS < 5 && ERA > 5.00) ? 100 : 0) : 0).toFixed(1);
+    const ESC_PCT = IR > 0 ? ((IR - IRS) / IR * 100).toFixed(1) : 100;
+    const K_IP = IP > 0 ? (K / IP).toFixed(2) : 0;
+    const K_BF_PCT = ((K / BF) * 100).toFixed(1);
 
     return {
       ...pitcher,
@@ -89,6 +97,9 @@ const calculateAdvancedStats = (pitcher) => {
       IP,
       xERA,
       xFIP,
+      ESC_PCT,  // Escape Rate (% of inherited runners stranded)
+      K_IP,     // Strikeouts per inning pitched
+      K_BF_PCT, // Strikeout rate per batter faced
       DOMS,
       ChaseEfficiency,
       tWHIP,
@@ -97,7 +108,6 @@ const calculateAdvancedStats = (pitcher) => {
       SwStr,
       TrueKBB,
       LIE,
-      DQS
     };
   };
 
@@ -288,10 +298,15 @@ const calculateAdvancedStats = (pitcher) => {
                 <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('LIE')}>
                   LIE {sortField === 'LIE' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DQS')}>
-                  DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-              </tr>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ESC_PCT')}>
+  ESC% {sortField === 'ESC_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
+</th>
+<th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_IP')}>
+  K/IP {sortField === 'K_IP' && (sortDirection === 'asc' ? '↑' : '↓')}
+</th>
+<th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_BF_PCT')}>
+  K/BF% {sortField === 'K_BF_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
+</th>
             </thead>
             <tbody>
               {filteredPitchers.map((pitcher, idx) => (
