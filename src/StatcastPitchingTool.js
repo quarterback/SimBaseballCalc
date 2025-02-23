@@ -73,15 +73,15 @@ const calculateAdvancedStats = (pitcher) => {
     const xFIP = ((FIP * 0.85) + (HR_9 * 0.15)).toFixed(2);
 
     // Advanced Metrics
-    const DOMS = ((K_PCT - BB_PCT) + ((K / 9) * 1.5)).toFixed(1);
-    const ChaseEfficiency = ((K / (K + BB)) * 100).toFixed(1);
+    const DOMS = ((K_PCT - BB_PCT) + (K_PCT * 1.5)).toFixed(1);
+    const ChaseEfficiency = ((K_PCT / (K_PCT + BB_PCT)) * 100).toFixed(1);
     const tWHIP = (((BB - IBB) + H) / IP).toFixed(2);
-    const HLPI = ((WPA * 50) + (LOB_PCT * 0.5) - ((BB / 9) * 5)).toFixed(1);
-    const PutawayRate = ((K / (K + (BF - K - BB))) * 100).toFixed(1);
+    const HLPI = ((WPA * 50) + (LOB_PCT * 0.5) - (BB_PCT * 2)).toFixed(1);
+    const PutawayRate = ((K / BF) * 100).toFixed(1);
     const SwStr = ((K / (BF - BB)) * 100).toFixed(1);
-    const TrueKBB = ((K_PCT - (BB_PCT - (IBB / BF) * 100)) + (pLI * 5)).toFixed(1);
+    const TrueKBB = ((K_PCT - BB_PCT) + (pLI * 5)).toFixed(1);
     const LIE = ((ERA * 0.6) + (LOB_PCT * 0.4)).toFixed(1);
-    const DQS = ((ER >= 5 && IP < 5 ? 1 : 0) / GS * 100).toFixed(1);
+    const DQS = (GS > 0 ? ((IP / GS < 5 && ERA > 5.00) ? 100 : 0) : 0).toFixed(1);
 
     return {
       ...pitcher,
