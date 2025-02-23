@@ -11,63 +11,63 @@ const StatcastPitchingTool = () => {
   const [roleFilter, setRoleFilter] = useState('ALL');
 
   const REQUIRED_HEADERS = [
-    'Name',
-    'Team',
-    'POS',
-    'IP',
-    'ERA',
-    'FIP',
-    'BABIP',
-    'K%',
-    'BB%',
-    'HR/9',
-    'H/9',
-    'LOB%',
-    'GO%',
-    'Stuff',
-    'Movement',
-    'Control',
-    'Stamina',
-    'BF',           // Added these to ensure they're tracked
-    'IBB',
-    'WPA',
-    'pLI',
-    'GS'
-  ];
+  'Name',
+  'TM',
+  'POS',
+  'IP',
+  'ERA',
+  'FIP',
+  'BABIP',
+  'K%',
+  'BB%',
+  'HR/9',
+  'H/9',
+  'LOB%',
+  'GO%',
+  'STU',
+  'MOV',
+  'CON',
+  'STM',
+  'BF',
+  'IBB',
+  'WPA',
+  'pLi',
+  'GS'
+];
 
-    const calculateAdvancedStats = (pitcher) => {
-    // Identify the correct role
-    const isSP = pitcher.POS.includes('SP');
-    const isCL = pitcher.POS.includes('CL');
-    const isRP = pitcher.POS.includes('RP') && !isCL;  // Ensure RP is not mistakenly classified as CL
+const calculateAdvancedStats = (pitcher) => {
+  // Identify the correct role
+  const isSP = pitcher.POS.includes('SP');
+  const isCL = pitcher.POS.includes('CL');
+  const isRP = pitcher.POS.includes('RP') && !isCL;  // Ensure RP is not mistakenly classified as CL
 
-    // OOTP Stats - Using default values if missing
-    const ERA = parseFloat(pitcher.ERA) || 4.50;
-    const FIP = parseFloat(pitcher.FIP) || 4.50;
-    const BABIP = parseFloat(pitcher.BABIP) || 0.300;
-    const K_PCT = parseFloat(pitcher['K%']) || 22.0;
-    const BB_PCT = parseFloat(pitcher['BB%']) || 8.0;
-    const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
-    const H_9 = parseFloat(pitcher['H/9']) || 9.0;
-    const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
-    const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;
-    const IP = parseFloat(pitcher.IP) || 0;
-    const BF = parseFloat(pitcher.BF) || (IP * 3 + H_9 * (IP / 9)); // Approximate if missing
-    const BB = (BB_PCT / 100) * BF;
-    const K = (K_PCT / 100) * BF;
-    const IBB = parseFloat(pitcher.IBB) || 0;
-    const WPA = parseFloat(pitcher.WPA) || 0;
-    const pLI = parseFloat(pitcher.pLI) || 1;
-    const GS = parseFloat(pitcher.GS) || (isSP ? 10 : 0);
-    const ER = (ERA / 9) * IP;
-    const H = (H_9 / 9) * IP;
+  // OOTP Stats - Using default values if missing
+  const ERA = parseFloat(pitcher.ERA) || 4.50;
+  const FIP = parseFloat(pitcher.FIP) || 4.50;
+  const BABIP = parseFloat(pitcher.BABIP) || 0.300;
+  const K_PCT = parseFloat(pitcher['K%']) || 22.0;
+  const BB_PCT = parseFloat(pitcher['BB%']) || 8.0;
+  const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
+  const H_9 = parseFloat(pitcher['H/9']) || 9.0;
+  const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
+  const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;
+  const IP = parseFloat(pitcher.IP) || 0;
+  const BF = parseFloat(pitcher.BF) || (IP * 3 + H_9 * (IP / 9)); // Approximate if missing
+  const BB = (BB_PCT / 100) * BF;
+  const K = (K_PCT / 100) * BF;
+  const IBB = parseFloat(pitcher.IBB) || 0;
+  const WPA = parseFloat(pitcher.WPA) || 0;
+  const pLI = parseFloat(pitcher.pLi) || 1;  // Note: changed from pLI to pLi
+  const GS = parseFloat(pitcher.GS) || (isSP ? 10 : 0);
+  const ER = (ERA / 9) * IP;
+  const H = (H_9 / 9) * IP;
 
-    // OOTP Ratings
-    const STUFF = parseFloat(pitcher.Stuff) || 50;
-    const MOVEMENT = parseFloat(pitcher.Movement) || 50;
-    const CONTROL = parseFloat(pitcher.Control) || 50;
-    const STAMINA = parseFloat(pitcher.Stamina) || 50;
-
+  // OOTP Ratings
+  const STUFF = parseFloat(pitcher.STU) || 50;  // Changed from Stuff to STU
+  const MOVEMENT = parseFloat(pitcher.MOV) || 50;  // Changed from Movement to MOV
+  const CONTROL = parseFloat(pitcher.CON) || 50;  // Changed from Control to CON
+  const STAMINA = parseFloat(pitcher.STM) || 50;  // Changed from Stamina to STM
+  
     // Expected Stats
     const xERA = ((ERA * 0.6) + (FIP * 0.3) + (BABIP * 10 * 0.1)).toFixed(2);
     const xFIP = ((FIP * 0.85) + (HR_9 * 0.15)).toFixed(2);
@@ -190,11 +190,11 @@ const StatcastPitchingTool = () => {
   };
 
   const filteredPitchers = pitchers.filter(pitcher => {
-    const matchesSearch = pitcher.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         pitcher.Team?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'ALL' || pitcher.Role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const matchesSearch = pitcher.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                       pitcher.TM?.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesRole = roleFilter === 'ALL' || pitcher.Role === roleFilter;
+  return matchesSearch && matchesRole;
+});
 
   return (
     <div className="max-w-full mx-auto p-6 bg-white shadow-lg rounded-lg">
