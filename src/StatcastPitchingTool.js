@@ -36,7 +36,10 @@ const StatcastPitchingTool = () => {
   ];
 
     const calculateAdvancedStats = (pitcher) => {
-    const isSP = pitcher.POS.includes('SP') || pitcher.POS.includes('SP'); 
+    // Identify the correct role
+    const isSP = pitcher.POS.includes('SP');
+    const isCL = pitcher.POS.includes('CL');
+    const isRP = pitcher.POS.includes('RP') && !isCL;  // Ensure RP is not mistakenly classified as CL
 
     // OOTP Stats - Using default values if missing
     const ERA = parseFloat(pitcher.ERA) || 4.50;
