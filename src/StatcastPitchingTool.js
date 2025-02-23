@@ -23,7 +23,7 @@ const StatcastPitchingTool = () => {
     'HR/9',
     'H/9',
     'LOB%',
-    'GB%',
+    'GO%',
     'Stuff',
     'Movement',
     'Control',
@@ -47,7 +47,7 @@ const StatcastPitchingTool = () => {
     const HR_9 = parseFloat(pitcher['HR/9']) || 1.2;
     const H_9 = parseFloat(pitcher['H/9']) || 9.0;
     const LOB_PCT = parseFloat(pitcher['LOB%']) || 72.0;
-    const GB_PCT = parseFloat(pitcher['GB%']) || 42.0;
+    const GB_PCT = parseFloat(pitcher['GO%']) || 42.0;
     const IP = parseFloat(pitcher.IP) || 0;
     const BF = parseFloat(pitcher.BF) || (IP * 3 + H_9 * (IP / 9)); // Approximate if missing
     const BB = (BB_PCT / 100) * BF;
