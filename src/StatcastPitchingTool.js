@@ -299,14 +299,15 @@ const calculateAdvancedStats = (pitcher) => {
                   LIE {sortField === 'LIE' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('ESC_PCT')}>
-  ESC% {sortField === 'ESC_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
-</th>
-<th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_IP')}>
-  K/IP {sortField === 'K_IP' && (sortDirection === 'asc' ? '↑' : '↓')}
-</th>
-<th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_BF_PCT')}>
-  K/BF% {sortField === 'K_BF_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
-</th>
+                ESC% {sortField === 'ESC_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_IP')}>
+                K/IP {sortField === 'K_IP' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('K_BF_PCT')}>
+                K/BF% {sortField === 'K_BF_PCT' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </th>
+            </tr>
             </thead>
             <tbody>
               {filteredPitchers.map((pitcher, idx) => (
