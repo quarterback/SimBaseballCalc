@@ -1,8 +1,11 @@
 # OOTP Fantasy Calculator
 
-For years, I've wanted a modular Fantasy calculator that lets you play OOTP like a fantasy league in all the various different formats, but didn't feel like building it myself because it's a huge lift for something so trivial. Then I realized all you really need is a calculator for making sense of the points, then all you need is a separate spreadsheet to play how you want. Since OOTP is mostly a solo game anyway, I figure that anyone dorky would just figure out how to make this work for themselves. This is pretty bare bones, built in less than an hour and is mostly just for me, I guess I'll share it someday. Fork and update it to your heart's content if you find it. 
+For years, I've wanted a modular Fantasy calculator that lets you play OOTP like a fantasy league in all the various different formats, but didn't feel like building it myself because it's a huge lift for something so trivial. Then I realized all you really need is a calculator for making sense of the points, then all you need is a separate spreadsheet to play how you want. Since OOTP is mostly a solo game anyway, I figure that anyone dorky would just figure out how to make this work for themselves. 
 
-Ideal state, someday there could be more features to something like this...but it's a limited use case tool and this already surpasses my hopes and dreams. 
+What started as a simple calculator has grown into a suite of tools for analyzing OOTP data in ways the game doesn't provide. Now including advanced metric calculations, Statcast-style analytics, and various ways to play fantasy-style games with your OOTP league. This is still pretty bare bones and mostly for me, but it's become more useful than I initially imagined. Fork and update it to your heart's content if you find it.
+
+## Version 1.7.1
+Current version includes fantasy calculators, advanced stats tools, player valuation systems, and solo game modes. Each tool can be used independently or together to enhance your OOTP experience.
 
 ## Features
 
