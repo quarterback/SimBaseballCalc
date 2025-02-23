@@ -286,7 +286,7 @@ const StatcastPitchingTool = () => {
                   LIE {sortField === 'LIE' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="sticky top-0 bg-gray-50 px-6 py-3 text-right cursor-pointer" onClick={() => handleSort('DQS')}>
-                  DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  DQS% {sortField === 'DQS' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
               </tr>
             </thead>
