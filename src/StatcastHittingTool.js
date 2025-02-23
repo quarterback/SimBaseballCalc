@@ -10,57 +10,112 @@ const StatcastHittingTool = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
 const calculateAdvancedStats = (player) => {
+  // Basic Stats
   const AVG = parseFloat(player.AVG) || 0.260;
   const OBP = parseFloat(player.OBP) || 0.330;
   const SLG = parseFloat(player.SLG) || 0.430;
   const BABIP = parseFloat(player.BABIP) || 0.300;
   
+  // Counting Stats
   const HR = parseInt(player.HR) || 0;
-  const PA = Math.max(parseInt(player.PA) || 1, 1); // Ensure PA is at least 1
+  const PA = parseInt(player.PA) || 1;
   const BB = parseInt(player.BB) || 0;
-  const HBP = parseInt(player.HP) || 0;
-  const AB = parseInt(player.AB) || PA - BB - HBP; // If AB missing, estimate
+  const HBP = parseInt(player.HP) || 0;  // Using HP for Hit By Pitch
+  const AB = parseInt(player.AB) || PA - BB - HBP;
   const SF = parseInt(player.SF) || 0;
   const RBI = parseInt(player.RBI) || 0;
   const R = parseInt(player.R) || 0;
   const SB = parseInt(player.SB) || 0;
   const WPA = parseFloat(player.WPA) || 0;
 
-  const Singles = (parseInt(player['1B']) || 0);
-  const Doubles = (parseInt(player['2B']) || 0);
-  const Triples = (parseInt(player['3B']) || 0);
+  // Hit Types
+  const Singles = parseInt(player['1B']) || 0;
+  const Doubles = parseInt(player['2B']) || 0;
+  const Triples = parseInt(player['3B']) || 0;
 
-  // Fixing ISO Calculation
+  // Percentages
+  const BB_PCT = parseFloat(player['BB%']) || 0;
+  const SO_PCT = parseFloat(player['SO%']) || 22.0;
+
+  // Ratings
+  const CONTACT = parseFloat(player.CON) || 50;
+  const POWER = parseFloat(player.POW) || 50;
+  const EYE = parseFloat(player.EYE) || 50;
+
+  // Calculated Base Stats
   const ISO = Math.max(0, SLG - AVG);
+  const BIP = Math.max(AB - HR - BB - HBP, 1); // Balls in Play
 
-  // Fixing Balls in Play (BIP) Calculation
-  const BIP = Math.max(AB - HR - SF - BB - HBP, 1); // Avoid division by zero
-
+  // Advanced Metrics Calculations
   return {
     ...player,
-    ISO: ISO.toFixed(3),
-    BIP,
+    // Expected Stats
     xBA: ((BABIP * 0.85) + (AVG * 0.15)).toFixed(3),
     xSLG: ((SLG * 0.9) + (ISO * 0.1)).toFixed(3),
-    xWOBA: ((OBP * 0.6) + (SLG * 0.3) + ((HR / PA) * 0.1)).toFixed(3),
-    BIP_PCT: (((BIP / PA) * 100) || 0).toFixed(1),
-    xOPS_PLUS: (((parseFloat(player['OPS+']) || 100) * 0.9) + (ISO * 100 * 0.1)).toFixed(1),
-    Contact_Plus: (((parseFloat(player.CON) - 50) * 1.5) + ((100 - ((BB / PA) * 100) - ((parseFloat(player['SO%']) || 22.0) - 70) * 2))).toFixed(1),
-    Chase_PCT: ((parseFloat(player.EYE) * 0.4) - ((parseFloat(player['SO%']) || 22.0) * 0.6)).toFixed(1),
-    True_ISO: ((ISO * 0.8) + ((parseFloat(player.POW) || 50) / 100 * 0.2)).toFixed(3),
-    Plate_Skills: ((OBP * 0.4) + ((parseFloat(player.EYE) || 50) / 100 * 0.3) + (((100 - ((parseFloat(player['SO%']) || 22.0))) / 100) * 0.3)).toFixed(3),
+    xWOBA: ((OBP * 0.6) + (SLG * 0.3) + ((HR / Math.max(PA, 1)) * 0.1)).toFixed(3),
     
-    // Fixing Barrel% Calculation
-    Barrel_PCT: (((HR + (Doubles + Triples) * 0.5) / PA) * 100).toFixed(1),
-
-    xHR_PCT: ((HR / PA) * 1.15 * 100).toFixed(1),
-    RPE: ((RBI + R - HR) / PA).toFixed(3),
-
-    // Fixing True wOBA Calculation
-    True_wOBA: (((0.7 * BB) + (0.9 * HBP) + (0.88 * Singles) + (1.25 * Doubles) + (1.6 * Triples) + (2.1 * HR)) / (AB + BB + SF + HBP)).toFixed(3),
+    // Contact Metrics
+    BIP_PCT: ((BIP / Math.max(PA, 1)) * 100).toFixed(1),
+    Contact_Plus: (
+      ((CONTACT - 50) * 1.5) + 
+      ((100 - BB_PCT - SO_PCT) * 0.5)
+    ).toFixed(1),
     
-    Clutch_Index: (((WPA * 100) / PA) || 0).toFixed(2), 
-    Power_Speed_Number: ((2 * HR * SB) / Math.max(HR + SB, 1)).toFixed(2)
+    // Plate Discipline
+    Chase_PCT: (
+      (EYE * 0.4) - 
+      (SO_PCT * 0.6)
+    ).toFixed(1),
+    
+    // Power Metrics
+    True_ISO: (
+      (ISO * 0.8) + 
+      (POWER / 100 * 0.2)
+    ).toFixed(3),
+    
+    Barrel_PCT: (
+      ((HR + (Doubles + Triples) * 0.5) / Math.max(PA, 1)) * 100
+    ).toFixed(1),
+    
+    xHR_PCT: (
+      (HR / Math.max(PA, 1)) * 100 * 1.15
+    ).toFixed(1),
+    
+    // On-Base Skills
+    Plate_Skills: (
+      (OBP * 0.4) + 
+      (EYE / 100 * 0.3) + 
+      ((100 - SO_PCT) / 100 * 0.3)
+    ).toFixed(3),
+    
+    // Run Production
+    RPE: (
+      (RBI + R - HR) / Math.max(PA, 1)
+    ).toFixed(3),
+    
+    // True Outcomes
+    True_wOBA: (
+      (0.7 * BB + 0.9 * HBP + 0.88 * Singles + 
+       1.25 * Doubles + 1.6 * Triples + 2.1 * HR) / 
+      Math.max(AB + BB + SF + HBP, 1)
+    ).toFixed(3),
+    
+    // Performance Metrics
+    Clutch_Index: (
+      (WPA * 100) / Math.max(PA, 1)
+    ).toFixed(2),
+    
+    Power_Speed_Number: (
+      (2 * HR * SB) / Math.max(HR + SB, 1)
+    ).toFixed(2),
+
+    // Custom Composite Scores
+    Offensive_Rating: (
+      (parseFloat(((OBP * 0.4) + (SLG * 0.6)).toFixed(3)) * 100) +
+      (CONTACT - 50) + 
+      (POWER - 50) + 
+      (EYE - 50)
+    ).toFixed(1)
   };
 };
 
