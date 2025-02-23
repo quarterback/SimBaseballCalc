@@ -35,8 +35,8 @@ const StatcastPitchingTool = () => {
     'GS'
   ];
 
-  const calculateAdvancedStats = (pitcher) => {
-    const isSP = pitcher.POS === 'SP';
+    const calculateAdvancedStats = (pitcher) => {
+    const isSP = pitcher.POS.includes('SP') || pitcher.POS.includes('SP'); 
 
     // OOTP Stats - Using default values if missing
     const ERA = parseFloat(pitcher.ERA) || 4.50;
