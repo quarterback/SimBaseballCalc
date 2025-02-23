@@ -110,6 +110,32 @@ const REQUIRED_HEADERS = [
       parseFloat(durabilityScore) * 0.1
     ).toFixed(1);
 
+      const exportToCSV = () => {
+  if (pitchers.length === 0) return;
+
+const headers = [
+  'Name', 'TM', 'Role', 'IP', 'xERA', 'xFIP', 'Deception', 
+  'StaminaEfficiency', 'PitchEconomy', 'HighLeverage', 'Consistency', 
+  'ArsenalScore', 'ContactQuality', 'Durability', 'Effectiveness'
+];
+
+  const csvContent = [
+    headers.join(','),
+    ...filteredPitchers.map(pitcher => headers.map(header => 
+      (pitcher[header] || '').toString().replace(/,/g, ';')
+    ).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'advanced_pitching_stats.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+      
      return {
       ...pitcher,
       Team,                    // Add this to include team in output
@@ -193,12 +219,12 @@ const REQUIRED_HEADERS = [
     setPitchers(sortedPitchers);
   };
 
-  const filteredPitchers = pitchers.filter(pitcher => {
-    const matchesSearch = pitcher.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         pitcher.Team?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'ALL' || pitcher.Role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+const filteredPitchers = pitchers.filter(pitcher => {
+  const matchesSearch = pitcher.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                       pitcher.TM?.toLowerCase().includes(searchQuery.toLowerCase());  // Changed from Team to TM
+  const matchesRole = roleFilter === 'ALL' || pitcher.Role === roleFilter;
+  return matchesSearch && matchesRole;
+});
 
   return (
     <div className="max-w-full mx-auto p-6 bg-white shadow-lg rounded-lg">
@@ -224,13 +250,21 @@ const REQUIRED_HEADERS = [
         </div>
 
         <input
-          type="text"
-          placeholder="Search pitchers..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-      </div>
+    type="text"
+    placeholder="Search pitchers..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full p-2 border rounded"
+  />
+  
+  <button
+    onClick={exportToCSV}
+    disabled={pitchers.length === 0}
+    className="w-full p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    Export to CSV
+  </button>
+</div>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
