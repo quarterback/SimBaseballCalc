@@ -32,7 +32,7 @@ const SeasonDFS = () => {
 
   const ROSTER_REQUIREMENTS = {
     'SP': { min: 1, max: 2 },
-    'CL': { min: 0, max: 1 },  // Allow 0-1 closers
+    'CL': { min: 1, max: 1 },  // Allow 0-1 closers
     'RP': { min: 1, max: 2 },
     'C': { min: 1, max: 1 },
     '1B': { min: 1, max: 1 },
@@ -266,8 +266,8 @@ const SeasonDFS = () => {
   };
 
   const addToRoster = (player) => {
-    if (userRoster.length >= 10) {
-      setError('Roster is full (10 players maximum)');
+    if (userRoster.length >= 12) {
+      setError('Roster is full (12 players maximum)');
       return;
     }
 
@@ -402,8 +402,8 @@ const SeasonDFS = () => {
   };
 
   const lockGame = () => {
-    if (userRoster.length !== 10) {
-      setError('Must have exactly 10 players (including UTIL) to lock lineup');
+    if (userRoster.length !== 12) {
+      setError('Must have exactly 12 players (including UTIL) to lock lineup');
       return;
     }
 
