@@ -28,10 +28,11 @@ const SeasonDFS = () => {
   // Constants
   const SALARY_CAP = 50000;
   const MIN_SALARY = 3000;
-  const POSITIONS = ['ALL', 'SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+  const POSITIONS = ['ALL', 'SP', 'CL', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   const ROSTER_REQUIREMENTS = {
     'SP': { min: 1, max: 2 },
+    'CL': { min: 0, max: 1 },  // Allow 0-1 closers
     'RP': { min: 1, max: 2 },
     'C': { min: 1, max: 1 },
     '1B': { min: 1, max: 1 },
@@ -42,7 +43,7 @@ const SeasonDFS = () => {
     'CF': { min: 1, max: 1 },
     'RF': { min: 1, max: 1 },
     'UTIL': { min: 0, max: 1 }
-  };
+};
 
   // Username generation for AI opponents
   const generateRandomUser = () => {
@@ -223,14 +224,15 @@ const SeasonDFS = () => {
 
   const generateSalary = (points, position) => {
     const positionMultiplier = {
-      'SP': 1.4,
-      'RP': 1.3,
-      'C': 1.2,
-      'SS': 1.15,
-      'LF': 0.9,
-      'CF': 0.9,
-      'RF': 0.9
-    }[position] || 1;
+    'SP': 1.4,
+    'CL': 1.35,  // Higher than regular RP due to save opportunities
+    'RP': 1.3,
+    'C': 1.2,
+    'SS': 1.15,
+    'LF': 0.9,
+    'CF': 0.9,
+    'RF': 0.9
+  }[position] || 1;
 
     const baseSalary = points * 100 * positionMultiplier;
     const randomizedSalary = baseSalary * (0.8 + Math.random() * 0.4);
