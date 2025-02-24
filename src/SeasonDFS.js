@@ -555,66 +555,58 @@ const SeasonDFS = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Available Players */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold mb-4">Available Players</h3>
-          <div className="h-96 overflow-y-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-2 text-left">Name</th>
-                  <th className="p-2 text-left">POS</th>
-                  <th className="p-2 text-right">WAR</th>
-                  <th className="p-2 text-right">Salary</th>
-                  <th className="p-2 text-right">Points</th>
-                  <th className="p-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availablePlayers
-                  .filter(player => {
-                    const matchesSearch = 
-                      player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      player.POS?.toLowerCase().includes(searchQuery.toLowerCase());
-                    
-                    if (positionFilter === 'WAR') {
-                      return parseFloat(player.WAR || 0) > 2.0;
-                    } else if (positionFilter === 'SALARY') {
-                      return player.salary > 8000;
-                    } else {
-                      return matchesSearch && (positionFilter === 'ALL' || player.POS === positionFilter);
-                    }
-                  })
-                  .sort((a, b) => {
-                    if (positionFilter === 'WAR') {
-                      return parseFloat(b.WAR || 0) - parseFloat(a.WAR || 0);
-                    } else if (positionFilter === 'SALARY') {
-                      return b.salary - a.salary;
-                    }
-                    return 0;
-                  })
-                  .map((player, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">{player.Name}</td>
-                      <td className="p-2">{player.POS}</td>
-                      <td className="p-2 text-right">{player.WAR?.toFixed(1) || '0.0'}</td>
-                      <td className="p-2 text-right">${player.salary?.toLocaleString()}</td>
-                      <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
-                      <td className="p-2 text-right">
-                        <button
-                          onClick={() => addToRoster(player)}
-                          disabled={gameLocked}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                        >
-                          Add
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+{/* Available Players */}
+<div className="bg-white rounded-lg shadow p-4">
+  <h3 className="text-lg font-semibold mb-4">Available Players</h3>
+  <div className="h-96 overflow-y-auto">
+    <table className="min-w-full">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="p-2 text-left cursor-pointer" onClick={() => handleSort('Name')}>
+            Name {sortField === 'Name' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </th>
+          <th className="p-2 text-left cursor-pointer" onClick={() => handleSort('POS')}>
+            POS {sortField === 'POS' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </th>
+          <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('salary')}>
+            Salary {sortField === 'salary' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </th>
+          <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('points')}>
+            Points {sortField === 'points' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </th>
+          <th className="p-2 text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {availablePlayers
+          .filter(player => {
+            const matchesSearch = 
+              player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              player.POS?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesPosition = positionFilter === 'ALL' || player.POS === positionFilter;
+            return matchesSearch && matchesPosition;
+          })
+          .map((player, idx) => (
+            <tr key={idx} className="border-t">
+              <td className="p-2">{player.Name}</td>
+              <td className="p-2">{player.POS}</td>
+              <td className="p-2 text-right">${player.salary?.toLocaleString()}</td>
+              <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
+              <td className="p-2 text-right">
+                <button
+                  onClick={() => addToRoster(player)}
+                  disabled={gameLocked}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                >
+                  Add
+                </button>
+              </td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
         {/* User's Roster */}
         <div className="bg-white rounded-lg shadow p-4">
