@@ -181,14 +181,14 @@ const SeasonDFS = () => {
           }
 
           const processedPlayers = results.data.map(player => {
-              const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
-              const points = calculateFantasyPoints(player);
-              return { ...player, '1B': singles, points };
-            });
-            
-            // Apply salary scaling to prevent busting the salary cap
-            const playersWithSalaries = generateSalary(processedPlayers);
-            setAvailablePlayers(playersWithSalaries);
+            const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
+            const points = calculateFantasyPoints(player);
+            return { ...player, '1B': singles, points };
+          });
+          
+          // Calculate salaries based on WPA and other impact metrics
+          const playersWithSalaries = generateSalary(processedPlayers);
+          setAvailablePlayers(playersWithSalaries);
           
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
@@ -225,29 +225,37 @@ const calculateFantasyPoints = (player) => {
   
 const generateSalary = (players) => {
   const positionMultipliers = {
-    'SP': 1.4,
-    'CL': 1.35,
-    'RP': 1.05,
-    'C': 1.2,
-    '1B': 1.1,
-    '2B': 1.2,
-    '3B': 1.2,
-    'SS': 1.2,
-    'LF': 0.9,
-    'CF': 1.0,
-    'RF': 0.9
+    'SP': 1.4, 'CL': 1.35, 'RP': 1.3, 'C': 1.2,
+    '1B': 1.1, '2B': 1.1, '3B': 1.1, 'SS': 1.15,
+    'LF': 0.9, 'CF': 0.9, 'RF': 0.9
   };
+
+  // Extract WPA values (ignore nulls)
+  const wpaValues = players
+    .map(player => player.WPA)
+    .filter(wpa => wpa !== undefined && !isNaN(wpa));
+
+  const maxWPA = Math.max(...wpaValues);
+  const minWPA = Math.min(...wpaValues);
+  const wpaRange = maxWPA - minWPA || 1; // Prevent division by zero
 
   let totalSalary = 0;
   let scaledSalaries = players.map(player => {
     const multiplier = positionMultipliers[player.POS] || 1;
-    let baseSalary = player.points * 100 * multiplier;
+    
+    // Normalize WPA for scaling (0 to 1 range)
+    const wpaNormalized = player.WPA !== undefined
+      ? (player.WPA - minWPA) / wpaRange
+      : 0.5; // Default if WPA is missing
+
+    let baseSalary = (player.points * 100 * multiplier) + (wpaNormalized * 5000);
     let salary = Math.max(MIN_SALARY, Math.round(baseSalary));
     totalSalary += salary;
+    
     return { ...player, salary };
   });
 
-  // If total salaries exceed SALARY_CAP, scale down
+  // Scale salaries down **only if they exceed cap**
   if (totalSalary > SALARY_CAP * players.length) {
     const scaleFactor = (SALARY_CAP * players.length) / totalSalary;
     scaledSalaries = scaledSalaries.map(player => ({
@@ -258,8 +266,6 @@ const generateSalary = (players) => {
 
   return scaledSalaries;
 };
-
-
 
 const validateRoster = (roster) => {
   const positionCounts = roster.reduce((counts, player) => {
