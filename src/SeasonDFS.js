@@ -26,8 +26,8 @@ const SeasonDFS = () => {
   });
 
   // Constants
-  const SALARY_CAP = 50000;
-  const MIN_SALARY = 3000;
+  const SALARY_CAP = 500000;
+  const MIN_SALARY = 30000;
   const POSITIONS = ['ALL', 'SP', 'CL', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   const ROSTER_REQUIREMENTS = {
@@ -181,19 +181,14 @@ const SeasonDFS = () => {
           }
 
           const processedPlayers = results.data.map(player => {
-            const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
-            const points = calculateFantasyPoints(player);
+              const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
+              const points = calculateFantasyPoints(player);
+              return { ...player, '1B': singles, points };
+            });
             
-            // Pass ALL players for salary calculation
-            const salary = generateSalary(player, results.data);
-          
-            return {
-              ...player,
-              '1B': singles,
-              points,
-              salary
-            };
-          });
+            // Apply salary scaling to prevent busting the salary cap
+            const playersWithSalaries = generateSalary(processedPlayers);
+            setAvailablePlayers(playersWithSalaries);
           
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
@@ -228,35 +223,42 @@ const calculateFantasyPoints = (player) => {
   return isNaN(totalPoints) ? 0 : totalPoints; // Prevent NaN
 };
   
-const generateSalary = (player, allPlayers) => {
-  if (!allPlayers.length) return MIN_SALARY;
+const generateSalary = (players) => {
+  const positionMultipliers = {
+    'SP': 1.4,
+    'CL': 1.35,
+    'RP': 1.05,
+    'C': 1.2,
+    '1B': 1.1,
+    '2B': 1.2,
+    '3B': 1.2,
+    'SS': 1.2,
+    'LF': 0.9,
+    'CF': 1.0,
+    'RF': 0.9
+  };
 
-  const leagueMaxPoints = Math.max(...allPlayers.map(p => p.points || 0));
-  const leagueMinPoints = Math.min(...allPlayers.map(p => p.points || 0));
+  let totalSalary = 0;
+  let scaledSalaries = players.map(player => {
+    const multiplier = positionMultipliers[player.POS] || 1;
+    let baseSalary = player.points * 100 * multiplier;
+    let salary = Math.max(MIN_SALARY, Math.round(baseSalary));
+    totalSalary += salary;
+    return { ...player, salary };
+  });
 
-  const performanceFactor =
-    leagueMaxPoints === leagueMinPoints
-      ? 1
-      : (player.points - leagueMinPoints) / (leagueMaxPoints - leagueMinPoints);
+  // If total salaries exceed SALARY_CAP, scale down
+  if (totalSalary > SALARY_CAP * players.length) {
+    const scaleFactor = (SALARY_CAP * players.length) / totalSalary;
+    scaledSalaries = scaledSalaries.map(player => ({
+      ...player,
+      salary: Math.max(MIN_SALARY, Math.round(player.salary * scaleFactor))
+    }));
+  }
 
-  const baseSalary = MIN_SALARY + performanceFactor * (SALARY_CAP - MIN_SALARY);
-
-  // Ensure position exists and fallback to 1.0 multiplier if missing
-  const positionMultiplier = {
-    'SP': 1.4, 'CL': 1.35, 'RP': 1.3,
-    'C': 1.2, 'SS': 1.15, '2B': 1.1,
-    '3B': 1.05, '1B': 1.0,
-    'LF': 0.95, 'RF': 0.95, 'CF': 0.9
-  }[player.POS?.trim()] || 1.0;  // Trim whitespace and use default
-
-  // Final salary calculation
-  const finalSalary = Math.max(
-    MIN_SALARY,
-    Math.round(baseSalary * positionMultiplier)
-  );
-
-  return isNaN(finalSalary) ? MIN_SALARY : finalSalary; // Prevent NaN
+  return scaledSalaries;
 };
+
 
 
 const validateRoster = (roster) => {
