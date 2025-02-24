@@ -209,54 +209,55 @@ const SeasonDFS = () => {
       setLoadingStats(false);
     }
   };
-
-  const calculateFantasyPoints = (player) => {
-    const scoring = {
-      '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
-      'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5,
-      'CS': -2, 'HBP': 2,
-      'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2,
-      'H': -0.6, 'BB': -0.6
-    };
-
-    return Object.entries(scoring).reduce((total, [stat, points]) => {
-      const value = player[stat] || 0;
-      return total + (value * points);
-    }, 0);
+const calculateFantasyPoints = (player) => {
+  const scoring = {
+    '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
+    'R': 2, 'RBI': 2, 'BB': 2, 'SB': 5,
+    'CS': -2, 'HBP': 2,
+    'IP': 2.25, 'K': 2, 'W': 4, 'ER': -2,
+    'H': -0.6, 'BB': -0.6
   };
+
+  let totalPoints = 0;
+  
+  for (const [stat, points] of Object.entries(scoring)) {
+    const value = parseFloat(player[stat]) || 0; // Ensure valid number
+    totalPoints += value * points;
+  }
+
+  return isNaN(totalPoints) ? 0 : totalPoints; // Prevent NaN
+};
   
 const generateSalary = (player, allPlayers) => {
   if (!allPlayers.length) return MIN_SALARY;
 
-  // Find min and max fantasy points within current player pool
-  const leagueMaxPoints = Math.max(...allPlayers.map(p => p.points));
-  const leagueMinPoints = Math.min(...allPlayers.map(p => p.points));
+  const leagueMaxPoints = Math.max(...allPlayers.map(p => p.points || 0));
+  const leagueMinPoints = Math.min(...allPlayers.map(p => p.points || 0));
 
-  // Handle edge case where all players have the same points
   const performanceFactor =
     leagueMaxPoints === leagueMinPoints
       ? 1
       : (player.points - leagueMinPoints) / (leagueMaxPoints - leagueMinPoints);
 
-  // Base salary scaled between MIN_SALARY and MAX_SALARY
   const baseSalary = MIN_SALARY + performanceFactor * (SALARY_CAP - MIN_SALARY);
 
-  // Position-based multipliers (Now includes 1B, 2B, and 3B)
+  // Ensure position exists and fallback to 1.0 multiplier if missing
   const positionMultiplier = {
     'SP': 1.4, 'CL': 1.35, 'RP': 1.3,
     'C': 1.2, 'SS': 1.15, '2B': 1.1,
     '3B': 1.05, '1B': 1.0,
     'LF': 0.95, 'RF': 0.95, 'CF': 0.9
-  }[player.POS] || 1;
+  }[player.POS?.trim()] || 1.0;  // Trim whitespace and use default
 
-  // Final salary with position adjustment
+  // Final salary calculation
   const finalSalary = Math.max(
     MIN_SALARY,
     Math.round(baseSalary * positionMultiplier)
   );
 
-  return finalSalary;
+  return isNaN(finalSalary) ? MIN_SALARY : finalSalary; // Prevent NaN
 };
+
 
 const validateRoster = (roster) => {
   const positionCounts = roster.reduce((counts, player) => {
@@ -669,14 +670,13 @@ const validateRoster = (roster) => {
                 <tr key={idx} className="border-t">
                   <td className="p-2">{player.Name}</td>
                   <td className="p-2">{player.POS}</td>
-                  <td className="p-2 text-right">${player.salary?.toLocaleString()}</td>
+                  <td className="p-2 text-right">${isNaN(player.salary) ? MIN_SALARY.toLocaleString() : player.salary.toLocaleString()}</td>
                   <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
                   <td className="p-2 text-right">
                     <button
                       onClick={() => removeFromRoster(idx)}
                       disabled={gameLocked}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
-                    >
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50">
                       Remove
                     </button>
                   </td>
