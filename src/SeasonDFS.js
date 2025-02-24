@@ -526,7 +526,7 @@ const SeasonDFS = () => {
         />
       </div>
 
-      <div className="flex gap-4 mb-4">
+<div className="flex gap-4 mb-4">
         <input
           type="text"
           placeholder="Search players..."
@@ -541,6 +541,9 @@ const SeasonDFS = () => {
           className="p-2 border rounded-lg min-w-[100px]"
           disabled={gameLocked}
         >
+          <option value="ALL">All</option>
+          <option value="WAR">WAR Leaders</option>
+          <option value="SALARY">Highest Salary</option>
           {POSITIONS.map(pos => (
             <option key={pos} value={pos}>
               {pos}
@@ -559,6 +562,7 @@ const SeasonDFS = () => {
                 <tr>
                   <th className="p-2 text-left">Name</th>
                   <th className="p-2 text-left">POS</th>
+                  <th className="p-2 text-right">WAR</th>
                   <th className="p-2 text-right">Salary</th>
                   <th className="p-2 text-right">Points</th>
                   <th className="p-2 text-right">Action</th>
@@ -570,13 +574,28 @@ const SeasonDFS = () => {
                     const matchesSearch = 
                       player.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       player.POS?.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesPosition = positionFilter === 'ALL' || player.POS === positionFilter;
-                    return matchesSearch && matchesPosition;
+                    
+                    if (positionFilter === 'WAR') {
+                      return parseFloat(player.WAR || 0) > 2.0;
+                    } else if (positionFilter === 'SALARY') {
+                      return player.salary > 8000;
+                    } else {
+                      return matchesSearch && (positionFilter === 'ALL' || player.POS === positionFilter);
+                    }
+                  })
+                  .sort((a, b) => {
+                    if (positionFilter === 'WAR') {
+                      return parseFloat(b.WAR || 0) - parseFloat(a.WAR || 0);
+                    } else if (positionFilter === 'SALARY') {
+                      return b.salary - a.salary;
+                    }
+                    return 0;
                   })
                   .map((player, idx) => (
                     <tr key={idx} className="border-t">
                       <td className="p-2">{player.Name}</td>
                       <td className="p-2">{player.POS}</td>
+                      <td className="p-2 text-right">{player.WAR?.toFixed(1) || '0.0'}</td>
                       <td className="p-2 text-right">${player.salary?.toLocaleString()}</td>
                       <td className="p-2 text-right">{player.points?.toFixed(1)}</td>
                       <td className="p-2 text-right">
