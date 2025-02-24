@@ -230,10 +230,10 @@ const generateSalary = (players) => {
     'LF': 0.9, 'CF': 0.9, 'RF': 0.9
   };
 
-  // Extract WPA values (ignore nulls)
+  // Extract valid WPA values
   const wpaValues = players
-    .map(player => player.WPA)
-    .filter(wpa => wpa !== undefined && !isNaN(wpa));
+    .map(player => parseFloat(player.WPA)) // Ensure WPA is a number
+    .filter(wpa => !isNaN(wpa));
 
   const maxWPA = Math.max(...wpaValues);
   const minWPA = Math.min(...wpaValues);
@@ -244,11 +244,13 @@ const generateSalary = (players) => {
     const multiplier = positionMultipliers[player.POS] || 1;
     
     // Normalize WPA for scaling (0 to 1 range)
-    const wpaNormalized = player.WPA !== undefined
-      ? (player.WPA - minWPA) / wpaRange
+    const wpaNormalized = !isNaN(parseFloat(player.WPA))
+      ? (parseFloat(player.WPA) - minWPA) / wpaRange
       : 0.5; // Default if WPA is missing
 
-    let baseSalary = (player.points * 100 * multiplier) + (wpaNormalized * 5000);
+    let baseSalary = ((player.points || 0) * 100 * multiplier) + (wpaNormalized * 5000);
+
+    // Ensure salary is a number
     let salary = Math.max(MIN_SALARY, Math.round(baseSalary));
     totalSalary += salary;
     
@@ -543,14 +545,14 @@ const validateRoster = (roster) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Salary Cap: ${SALARY_CAP.toLocaleString()}
-          </label>
-          <div className="text-lg font-medium">
-            Remaining: ${(SALARY_CAP - currentSalary).toLocaleString()}
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Salary Cap: ${SALARY_CAP.toLocaleString()}
+        </label>
+        <div className="text-lg font-medium">
+          Remaining: ${isNaN(SALARY_CAP - currentSalary) ? SALARY_CAP : (SALARY_CAP - currentSalary).toLocaleString()}
         </div>
+      </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
