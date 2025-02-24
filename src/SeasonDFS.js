@@ -26,8 +26,8 @@ const SeasonDFS = () => {
   });
 
   // Constants
-  const SALARY_CAP = 500000;
-  const MIN_SALARY = 30000;
+  const SALARY_CAP = 50000;
+  const MIN_SALARY = 3000;
   const POSITIONS = ['ALL', 'SP', 'CL', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   const ROSTER_REQUIREMENTS = {
