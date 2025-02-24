@@ -183,8 +183,10 @@ const SeasonDFS = () => {
           const processedPlayers = results.data.map(player => {
             const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
             const points = calculateFantasyPoints(player);
-            const salary = generateSalary(points, player.POS);
-
+            
+            // Pass ALL players for salary calculation
+            const salary = generateSalary(player, results.data);
+          
             return {
               ...player,
               '1B': singles,
@@ -192,9 +194,10 @@ const SeasonDFS = () => {
               salary
             };
           });
-
+          
           setAvailablePlayers(processedPlayers);
           setLoadingStats(false);
+
         },
         error: (error) => {
           setError(`Error processing file: ${error.message}`);
@@ -221,24 +224,40 @@ const SeasonDFS = () => {
       return total + (value * points);
     }, 0);
   };
-
-  const generateSalary = (points, position) => {
-    const positionMultiplier = {
-    'SP': 1.4,
-    'CL': 1.35,  // Higher than regular RP due to save opportunities
-    'RP': 1.3,
-    'C': 1.2,
-    'SS': 1.15,
-    'LF': 0.9,
-    'CF': 0.9,
-    'RF': 0.9
-  }[position] || 1;
-
-    const baseSalary = points * 100 * positionMultiplier;
-    const randomizedSalary = baseSalary * (0.8 + Math.random() * 0.4);
-    return Math.max(MIN_SALARY, Math.round(randomizedSalary));
-  };
   
+const generateSalary = (player, allPlayers) => {
+  if (!allPlayers.length) return MIN_SALARY;
+
+  // Find min and max fantasy points within current player pool
+  const leagueMaxPoints = Math.max(...allPlayers.map(p => p.points));
+  const leagueMinPoints = Math.min(...allPlayers.map(p => p.points));
+
+  // Handle edge case where all players have the same points
+  const performanceFactor =
+    leagueMaxPoints === leagueMinPoints
+      ? 1
+      : (player.points - leagueMinPoints) / (leagueMaxPoints - leagueMinPoints);
+
+  // Base salary scaled between MIN_SALARY and MAX_SALARY
+  const baseSalary = MIN_SALARY + performanceFactor * (SALARY_CAP - MIN_SALARY);
+
+  // Position-based multipliers (Now includes 1B, 2B, and 3B)
+  const positionMultiplier = {
+    'SP': 1.4, 'CL': 1.35, 'RP': 1.3,
+    'C': 1.2, 'SS': 1.15, '2B': 1.1,
+    '3B': 1.05, '1B': 1.0,
+    'LF': 0.95, 'RF': 0.95, 'CF': 0.9
+  }[player.POS] || 1;
+
+  // Final salary with position adjustment
+  const finalSalary = Math.max(
+    MIN_SALARY,
+    Math.round(baseSalary * positionMultiplier)
+  );
+
+  return finalSalary;
+};
+
 const validateRoster = (roster) => {
   const positionCounts = roster.reduce((counts, player) => {
     const pos = player.POS;
@@ -248,12 +267,18 @@ const validateRoster = (roster) => {
 
   const totalPitchers = (positionCounts['SP'] || 0) + (positionCounts['RP'] || 0);
   if (totalPitchers < 2) {
-    return `Need at least 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
+    return `Need 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
   }
 
-  // Check non-UTIL positions
   for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
-    if (pos === 'UTIL') continue; // Skip UTIL in normal validation
+    if (pos === 'UTIL') {
+      // UTIL can be any non-pitcher position
+      const nonPitchers = roster.filter(p => !['SP', 'RP', 'CL'].includes(p.POS));
+      if (nonPitchers.length < 1) {
+        return `UTIL must be filled with a non-pitcher`;
+      }
+      continue;
+    }
 
     const count = positionCounts[pos] || 0;
     if (count < requirement.min) {
@@ -264,15 +289,8 @@ const validateRoster = (roster) => {
     }
   }
 
-  // Ensure there's exactly **one** UTIL spot, but it can be any **non-pitcher**.
-  const nonPitcherCount = roster.filter(player => !['SP', 'RP'].includes(player.POS)).length;
-  if (nonPitcherCount < 9) {
-    return `Need at least 9 non-pitchers, currently have ${nonPitcherCount}`;
-  }
-
-  return null; // ✅ Roster is valid
+  return null;
 };
-
 
   const addToRoster = (player) => {
     if (userRoster.length >= 11) {
