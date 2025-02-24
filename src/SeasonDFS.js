@@ -238,32 +238,41 @@ const SeasonDFS = () => {
     const randomizedSalary = baseSalary * (0.8 + Math.random() * 0.4);
     return Math.max(MIN_SALARY, Math.round(randomizedSalary));
   };
+  
+const validateRoster = (roster) => {
+  const positionCounts = roster.reduce((counts, player) => {
+    const pos = player.POS;
+    counts[pos] = (counts[pos] || 0) + 1;
+    return counts;
+  }, {});
 
-  const validateRoster = (roster) => {
-    const positionCounts = roster.reduce((counts, player) => {
-      const pos = player.POS;
-      counts[pos] = (counts[pos] || 0) + 1;
-      return counts;
-    }, {});
+  const totalPitchers = (positionCounts['SP'] || 0) + (positionCounts['RP'] || 0);
+  if (totalPitchers < 2) {
+    return `Need at least 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
+  }
 
-    const totalPitchers = (positionCounts['SP'] || 0) + (positionCounts['RP'] || 0);
-    if (totalPitchers < 2) {
-      return `Need 2 pitchers (SP/RP). Currently have ${totalPitchers}`;
+  // Check non-UTIL positions
+  for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
+    if (pos === 'UTIL') continue; // Skip UTIL in normal validation
+
+    const count = positionCounts[pos] || 0;
+    if (count < requirement.min) {
+      return `Need at least ${requirement.min} ${pos} player${requirement.min > 1 ? 's' : ''}. Have ${count}`;
     }
-
-    for (const [pos, requirement] of Object.entries(ROSTER_REQUIREMENTS)) {
-      if (pos === 'UTIL') continue;
-      const count = positionCounts[pos] || 0;
-      if (count < requirement.min) {
-        return `Need at least ${requirement.min} ${pos} player${requirement.min > 1 ? 's' : ''}. Have ${count}`;
-      }
-      if (count > requirement.max) {
-        return `Maximum ${requirement.max} ${pos} players allowed. Have ${count}`;
-      }
+    if (count > requirement.max) {
+      return `Maximum ${requirement.max} ${pos} players allowed. Have ${count}`;
     }
+  }
 
-    return null;
-  };
+  // Ensure there's exactly **one** UTIL spot, but it can be any **non-pitcher**.
+  const nonPitcherCount = roster.filter(player => !['SP', 'RP'].includes(player.POS)).length;
+  if (nonPitcherCount < 9) {
+    return `Need at least 9 non-pitchers, currently have ${nonPitcherCount}`;
+  }
+
+  return null; // ✅ Roster is valid
+};
+
 
   const addToRoster = (player) => {
     if (userRoster.length >= 11) {
