@@ -165,45 +165,42 @@ const SeasonDFS = () => {
   };
 
   const processFile = async (file) => {
-    setLoadingStats(true);
-    setError('');
+  setLoadingStats(true);
+  setError('');
 
-    try {
-      const text = await file.text();
-      Papa.parse(text, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          if (results.errors.length > 0) {
-            setError('Error parsing CSV file');
-            return;
-          }
-
-          const processedPlayers = results.data.map(player => {
-            const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
-            const points = calculateFantasyPoints(player);
-            return { ...player, '1B': singles, points };
-          });
-          
-          // Calculate salaries based on WPA and other impact metrics
-          const playersWithSalaries = generateSalary(processedPlayers);
-          setAvailablePlayers(playersWithSalaries);
-          
-          setAvailablePlayers(processedPlayers);
-          setLoadingStats(false);
-
-        },
-        error: (error) => {
-          setError(`Error processing file: ${error.message}`);
-          setLoadingStats(false);
+  try {
+    const text = await file.text();
+    Papa.parse(text, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          setError('Error parsing CSV file');
+          return;
         }
-      });
-    } catch (error) {
-      setError(`Error reading file: ${error.message}`);
-      setLoadingStats(false);
-    }
-  };
+
+        const processedPlayers = results.data.map(player => {
+          const singles = (player.H || 0) - ((player['2B'] || 0) + (player['3B'] || 0) + (player.HR || 0));
+          const points = calculateFantasyPoints(player);
+          return { ...player, '1B': singles, points };
+        });
+        
+        // Calculate salaries
+        const playersWithSalaries = generateSalary(processedPlayers);
+        setAvailablePlayers(playersWithSalaries);
+        setLoadingStats(false);
+      },
+      error: (error) => {
+        setError(`Error processing file: ${error.message}`);
+        setLoadingStats(false);
+      }
+    });
+  } catch (error) {
+    setError(`Error reading file: ${error.message}`);
+    setLoadingStats(false);
+  }
+};
 const calculateFantasyPoints = (player) => {
   const scoring = {
     '1B': 3, '2B': 5, '3B': 8, 'HR': 10,
@@ -440,7 +437,7 @@ const validateRoster = (roster) => {
   };
 
   const lockGame = () => {
-    if (userRoster.length !== 11) {
+      if (userRoster.length !== 11) {  // Keep as 11 if that's what you want
       setError('Must have exactly 11 players (including UTIL) to lock lineup');
       return;
     }
@@ -695,25 +692,15 @@ const validateRoster = (roster) => {
             </tbody>
           </table>
 
-          <button
-            onClick={lockGame}
-            disabled={gameLocked || userRoster.length !== 10}
-            className="mt-4 w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50"
-          >
-            Lock Lineup & Generate AI Teams
-          </button>
+                 <button
+          onClick={lockGame}
+          disabled={gameLocked || userRoster.length !== 11}  // Change to 11 to match
+          className="mt-4 w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50"
+        >
+          Lock Lineup & Generate AI Teams
+        </button>
         </div>
       </div>
-
-      {/* Leaderboard */}
-{gameLocked && (
-        <button
-          onClick={advanceWeek}
-          className="mt-4 w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
-        >
-          Advance to Week {seasonWeek + 1}
-        </button>
-      )}
 
       {/* Leaderboard */}
       {gameLocked && aiTeams.length > 0 && (
