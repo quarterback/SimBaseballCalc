@@ -727,23 +727,23 @@ const validateRoster = (roster) => {
         </div>
       )}
 
-      {/* Winner Display */}
-      {winner && (
-        <div className="bg-green-50 p-4 rounded-lg mt-4">
-          <h3 className="text-lg font-bold">🏆 Winning Lineup - {winner.name}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-            {winner.roster.map((player, idx) => (
-              <div key={idx} className="flex justify-between">
-                <span>{player.Name} ({player.POS})</span>
-                <span>${player.salary?.toLocaleString()}</span>
-              </div>
-            ))}
+        {/* Winner Display */}
+        {winner && (
+          <div className="bg-green-50 p-4 rounded-lg mt-4">
+            <h3 className="text-lg font-bold">🏆 Winning Lineup - {winner.name}</h3>
+            {/* Winner content... */}
           </div>
-          <div className="mt-2 text-right">
-            <span className="font-bold">Total Score: {winner.score.toFixed(1)}</span>
-          </div>
-        </div>
-      )}
+        )}
+        
+        {/* Prominent advance button */}
+        {gameLocked && (
+          <button
+            onClick={advanceWeek}
+            className="mt-6 w-full bg-purple-500 text-white p-3 rounded-lg text-lg font-bold hover:bg-purple-600"
+          >
+            Advance to Week {seasonWeek + 1} →
+          </button>
+        )}
 
       {/* Season History */}
       {seasonHistory.length > 0 && (
