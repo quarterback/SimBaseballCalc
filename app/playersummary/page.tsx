@@ -1,4 +1,4 @@
-// app/playersummary/page.js
+// app/playersummary/page.tsx
 'use client';
 
 import React, { useState } from 'react';
