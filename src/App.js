@@ -80,7 +80,6 @@ function App() {
             <Routes>
               <Route path="/" element={<FantasyCalculator />} />
               <Route path="/markdown-summary" element={<MarkdownSummary />} />
-              <Route path="/beat-the-streak" element={<BeatTheStreak />} />
               <Route path="/season-dfs" element={<SeasonDFS />} />
               <Route path="/frvc" element={<FieldingRunValueCalculator />} />
               <Route path="/hit" element={<StatcastHittingTool />} />
