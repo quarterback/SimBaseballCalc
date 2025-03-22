@@ -8,7 +8,6 @@ import StatcastHittingTool from './StatcastHittingTool';
 import StatcastPitchingTool from './StatcastPitchingTool';
 import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc';
-import BeatTheStreak from './BeatTheStreak';
 
 function App() {
   return (
