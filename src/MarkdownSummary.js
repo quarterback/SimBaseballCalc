@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 
-const PlayerMarkdownGenerator = () => {
+const MarkdownSummary = () => {
   const [player, setPlayer] = useState({
     name: '',
     team: '',
@@ -75,4 +75,4 @@ ${player.awards ? `- **Awards:** ${player.awards}` : ''}
   );
 };
 
-export default PlayerMarkdownGenerator;
+export default MarkdownSummary;
