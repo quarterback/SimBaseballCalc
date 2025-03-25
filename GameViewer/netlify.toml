@@ -1,4 +1,5 @@
 [build]
+  base = "GameViewer"       # 👈 where your project lives
   command = "npm run build"
   publish = "dist"
 
