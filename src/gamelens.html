@@ -4,44 +4,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OOTP Game Log Parser</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@mark-ui/components@latest/dist/mark-ui.min.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 2rem; background: #f4f4f4; }
-    textarea { width: 100%; height: 200px; margin-bottom: 1rem; }
-    pre { background: #fff; padding: 1rem; border: 1px solid #ccc; white-space: pre-wrap; }
-    .button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; background: #444; color: white; border: none; border-radius: 4px; }
+    body { padding: 2rem; background: #f8f9fa; }
+    textarea { min-height: 200px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; background: #fff; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    .tag { display: inline-block; background: #e0e0e0; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; margin-left: 0.5rem; }
   </style>
 </head>
 <body>
-  <h1>OOTP Game Log Parser</h1>
-  <p>Paste a game log below and click "Parse" to generate a summary.</p>
-  <textarea id="logInput" placeholder="Paste OOTP game log here..."></textarea>
-  <button class="button" onclick="parseLog()">Parse</button>
-  <h2>Parsed Summary (Markdown)</h2>
-  <pre id="output"></pre>
+  <main class="container">
+    <h1>⚾ OOTP Game Log Parser</h1>
+    <p>Paste your game log below and hit "Parse" to generate a clean summary of key moments.</p>
+
+    <mark-textarea id="logInput" placeholder="Paste OOTP game log here..."></mark-textarea>
+    <mark-button id="parseButton">Parse Log</mark-button>
+
+    <h2>📝 Parsed Summary (Markdown)</h2>
+    <pre id="output">(Nothing parsed yet.)</pre>
+
+    <h3>🧠 Narrative Recap (LLM integration TBD)</h3>
+    <p>This will eventually generate a full story-style recap using GPT or Claude. Stay tuned!</p>
+  </main>
 
   <script>
-    function parseLog() {
+    document.getElementById("parseButton").addEventListener("click", () => {
       const input = document.getElementById("logInput").value;
       const lines = input.split(/\n+/);
       let currentHalfInning = "";
       let summary = "";
 
       lines.forEach((line) => {
-        // Detect new inning header
         if (/^(TOP|BOTTOM) OF THE/.test(line)) {
           currentHalfInning = line.trim();
           summary += `\n### ${currentHalfInning}\n`;
-        } 
-        // Detect key plays
-        else if (/HOME RUN|scores|DOUBLE|TRIPLE|steals|strikes out|caught stealing/i.test(line)) {
-          summary += `- ${line.trim()}\n`;
+        } else if (/HOME RUN|scores|DOUBLE|TRIPLE|steals|strikes out|caught stealing/i.test(line)) {
+          let tag = "";
+          if (/HOME RUN/i.test(line)) tag = "🧨 HR";
+          else if (/DOUBLE/i.test(line)) tag = "🟦 2B";
+          else if (/TRIPLE/i.test(line)) tag = "🟨 3B";
+          else if (/steals/i.test(line)) tag = "🏃 Steal";
+          else if (/caught stealing/i.test(line)) tag = "⛔ Caught";
+          else if (/strikes out/i.test(line)) tag = "❌ K";
+          else if (/scores/i.test(line)) tag = "🏁 Run";
+
+          summary += `- ${line.trim()} ${tag ? `\`${tag}\`` : ""}\n`;
         }
       });
 
       if (!summary.trim()) summary = "No highlights detected. Try a different log.";
 
       document.getElementById("output").textContent = summary.trim();
-    }
+    });
   </script>
 </body>
 </html>
