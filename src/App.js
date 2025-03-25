@@ -69,12 +69,6 @@ function App() {
             >
               Fan Interest Calc
             </Link> 
-                <Link 
-  to="/markdown-summary" 
-  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
->
-  Markdown Summary
-</Link>
           </nav>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
