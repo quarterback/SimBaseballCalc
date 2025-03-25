@@ -9,7 +9,6 @@ import StatcastHittingTool from './StatcastHittingTool';
 import StatcastPitchingTool from './StatcastPitchingTool';
 import FanInterestCalc from './FanInterestCalc';
 import MarketCalc from './MarketCalc';
-import TeamHallOfHonor from './TeamHallOfHonor';
 
 
 function App() {
@@ -58,12 +57,6 @@ function App() {
             >
               DFS Challenge
             </Link> 
-                <Link 
-  to="/team-honor" 
-  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
->
-  Team Honor
-</Link>
             <Link 
               to="/market-calc" 
               className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -95,7 +88,6 @@ function App() {
               <Route path="/dfs-ai" element={<DFSAI />} />
               <Route path="/market-calc" element={<MarketCalc />} />
               <Route path="/fan-interest" element={<FanInterestCalc />} />
-              <Route path="/team-honor" element={<TeamHallOfHonor />} />
             </Routes>
           </div>
         </div>
